@@ -1,6 +1,6 @@
-# Registro Dojo
+# FurinkazApp
 
-App per allenatori di karate: misure fisiche mensili degli atleti e analisi degli incontri di kumite
+App per allenatori di karate (風林火山): misure fisiche mensili degli atleti e analisi degli incontri di kumite
 (dove ogni atleta subisce più punti, con quale tecnica e in quale situazione).
 
 - **Allenatore e istruttori**: gestiscono atleti, misure, incontri e inviti.

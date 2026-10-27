@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { FormBenvenuto } from "./FormBenvenuto";
+import { Logo } from "@/components/Logo";
 
 export const metadata: Metadata = { title: "Benvenuto" };
 
@@ -16,7 +17,7 @@ export default async function Benvenuto() {
   return (
     <main className="wrap accesso">
       <div className="card">
-        <div className="logo"><i aria-hidden="true" />Registro Dojo</div>
+        <Logo altezza={40} />
         <FormBenvenuto />
         <form action="/auth/esci" method="post"><button className="linkbtn">Esci ({user.email})</button></form>
       </div>
