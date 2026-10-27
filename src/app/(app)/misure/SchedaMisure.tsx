@@ -3,16 +3,19 @@ import Link from "next/link";
 import { useActionState, useRef } from "react";
 import { MISURE } from "@/lib/domain/misure";
 import { salvaMisure } from "./azioni";
+import { EliminaMisure } from "@/components/EliminaMisure";
 
 interface Props {
   atleta: { id: string; nome: string };
   mese: string;
   valori: Record<string, number> | null;
   precedenti: Record<string, number | undefined>;
+  /** Solo l'amministratore può eliminare una rilevazione. */
+  puoEliminare?: boolean;
 }
 
 /** Riquadro con le misure di un atleta per il mese scelto. */
-export function SchedaMisure({ atleta, mese, valori, precedenti }: Props) {
+export function SchedaMisure({ atleta, mese, valori, precedenti, puoEliminare = false }: Props) {
   const [stato, azione, attesa] = useActionState(salvaMisure, undefined);
   const form = useRef<HTMLFormElement>(null);
   const haPrecedenti = Object.values(precedenti).some((v) => v != null);
@@ -46,6 +49,7 @@ export function SchedaMisure({ atleta, mese, valori, precedenti }: Props) {
       <div className="bar">
         <button className="btn small primary" disabled={attesa}>{valori ? "Aggiorna" : "Salva"}</button>
         {haPrecedenti && <button type="button" className="btn small" onClick={copiaPrecedenti}>Copia valori precedenti</button>}
+        {valori && puoEliminare && <><span className="grow" /><EliminaMisure atletaId={atleta.id} mese={mese} /></>}
       </div>
     </form>
   );

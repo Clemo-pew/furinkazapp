@@ -13,6 +13,7 @@ import { eta, etichettaMese } from "@/lib/domain/date";
 import type { Situazione } from "@/lib/domain/tipi";
 import { Cintura } from "@/components/Cintura";
 import { GraficoMisure } from "@/components/GraficoMisure";
+import { EliminaMisure } from "@/components/EliminaMisure";
 import { MappaColpi } from "@/components/MappaColpi";
 import { Barre } from "@/components/Barre";
 import { ElencoIncontri } from "@/components/ElencoIncontri";
@@ -130,6 +131,29 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
               })}
             </div>
             <GraficoMisure misure={misure} />
+            <details>
+              <summary className="hint" style={{ cursor: "pointer" }}>Storico delle rilevazioni ({misure.length})</summary>
+              <div className="tbl" style={{ marginTop: 8 }}>
+                <table style={{ minWidth: 560 }}>
+                  <thead>
+                    <tr>
+                      <th>Mese</th>
+                      {MISURE.map((m) => <th key={m.chiave} className="r">{m.nome} <span style={{ textTransform: "none" }}>({m.unita})</span></th>)}
+                      {c.ruolo === "admin" && <th />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...misure].reverse().map((r) => (
+                      <tr key={r.id}>
+                        <td className="num">{etichettaMese(r.mese)}</td>
+                        {MISURE.map((m) => <td key={m.chiave} className="r num">{r.valori[m.chiave] != null ? fmt(r.valori[m.chiave]) : "—"}</td>)}
+                        {c.ruolo === "admin" && <td className="r"><div className="bar" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}><EliminaMisure atletaId={id} mese={r.mese} testo="Elimina" /></div></td>}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
             {pesoTot != null && prima && ultima && (
               <p className="hint">Da {etichettaMese(prima.mese)} a {etichettaMese(ultima.mese)}: peso {pesoTot > 0 ? "+" : ""}{fmt(pesoTot)} kg.</p>
             )}

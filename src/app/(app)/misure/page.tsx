@@ -42,8 +42,8 @@ export default async function MisureDelMese({ searchParams }: { searchParams: Pr
         const corrente = mie.find((m) => m.mese === giorno);
         const precedenti = Object.fromEntries(MISURE.map((m) => [m.chiave, valorePrecedente(mie, m.chiave, giorno)]));
         return (
-          <SchedaMisure key={`${a.id}-${mese}`} atleta={{ id: a.id, nome: a.nome }} mese={mese}
-            valori={corrente?.valori ?? null} precedenti={precedenti} />
+          <SchedaMisure key={`${a.id}-${mese}-${corrente?.id ?? "nuovo"}`} atleta={{ id: a.id, nome: a.nome }} mese={mese}
+            valori={corrente?.valori ?? null} precedenti={precedenti} puoEliminare={c.ruolo === "admin"} />
         );
       })}
     </>

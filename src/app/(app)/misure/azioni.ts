@@ -34,3 +34,22 @@ export async function salvaMisure(_: Esito, form: FormData): Promise<Esito> {
   revalidatePath("/squadra");
   return { ok: true };
 }
+
+/** Elimina una rilevazione mensile inserita per errore. Solo amministratore. */
+export async function eliminaMisure(atletaId: string, mese: string): Promise<{ errore?: string }> {
+  const c = await contestoStaff();
+  if (c.ruolo !== "admin") return { errore: "Solo l'amministratore può eliminare le misure." };
+  if (!/^\d{4}-\d{2}(-01)?$/.test(mese)) return { errore: "Mese non valido." };
+  const supabase = await supabaseServer();
+  const { error } = await supabase
+    .from("misure")
+    .delete()
+    .eq("dojo_id", c.dojo.id)
+    .eq("atleta_id", atletaId)
+    .eq("mese", primoDelMese(mese));
+  if (error) return { errore: error.message };
+  revalidatePath("/misure");
+  revalidatePath(`/atleti/${atletaId}`);
+  revalidatePath("/squadra");
+  return {};
+}
