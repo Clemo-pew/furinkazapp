@@ -156,3 +156,7 @@ details.bout summary::-webkit-details-marker { display: none; }
   .scheletro { animation: pulsa 1.2s ease-in-out infinite; }
   @keyframes pulsa { 50% { opacity: 0.55; } }
 }
+
+/* diario */
+.tag-argomento { font-size: 0.78rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--ink); border: 1px solid var(--line); }
+.descrizione { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }

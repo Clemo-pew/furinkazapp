@@ -92,6 +92,19 @@ ok((await as("A", `select atleta_id from membri where user_id=$1`, [U.A])).rows[
 ok((await as("C", `update membri set ruolo='atleta' where dojo_id=$1 and user_id=$2 returning user_id`, [dojo, U.A])).rows.length === 1, "l'amministratore lo riporta ad atleta");
 await throws(() => as("C", `update membri set ruolo='atleta' where dojo_id=$1 and user_id=$2`, [dojo, U.I]), "un istruttore senza scheda non può diventare atleta");
 
+// diario allenamenti
+const all1 = (await as("I", `select public.salva_allenamento($1) as id`, [{ dojo_id: dojo, data: "2026-10-20", durata_min: "90", argomenti: ["kihon", "kumite"], descrizione: "Riscaldamento, kihon in linea, randori", presenti: [a1, a2] }])).rows[0].id;
+ok((await as("C", `select count(*)::int n from presenze where allenamento_id=$1`, [all1])).rows[0].n === 2, "l'istruttore registra un allenamento con 2 presenti");
+ok((await as("C", `select argomenti from allenamenti where id=$1`, [all1])).rows[0].argomenti.join() === "kihon,kumite", "argomenti salvati");
+await as("C", `select public.salva_allenamento($1)`, [{ id: all1, dojo_id: dojo, data: "2026-10-20", durata_min: "", argomenti: ["kata"], descrizione: "Corretto", presenti: [a2] }]);
+const all1r = (await as("C", `select durata_min, descrizione from allenamenti where id=$1`, [all1])).rows[0];
+ok(all1r.durata_min === null && all1r.descrizione === "Corretto", "la modifica aggiorna l'allenamento");
+ok((await as("C", `select count(*)::int n from presenze where allenamento_id=$1`, [all1])).rows[0].n === 1, "la modifica aggiorna le presenze");
+ok((await as("A", `select count(*)::int n from allenamenti`)).rows[0].n === 1, "l'atleta legge il diario");
+ok((await as("A", `select count(*)::int n from presenze`)).rows[0].n === 1, "l'atleta vede le presenze");
+await throws(() => as("A", `select public.salva_allenamento($1)`, [{ dojo_id: dojo, descrizione: "x", presenti: [] }]), "l'atleta non può scrivere nel diario");
+ok((await as("A", `delete from allenamenti returning id`)).rows.length === 0, "l'atleta non può cancellare allenamenti");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);

@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Atleta, Incontro, Misura, Valutazione } from "@/lib/domain/tipi";
+import type { Allenamento, Atleta, Incontro, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -75,4 +75,32 @@ export async function valutazioniDelDojo(dojoId: string): Promise<Valutazione[]>
   const { data, error } = await supabase.from("valutazioni").select("id, atleta_id, mese, valori, note").eq("dojo_id", dojoId).order("mese");
   if (error) throw error;
   return data as Valutazione[];
+}
+
+type RigaAllenamento = Omit<Allenamento, "presenti"> & { presenze: { atleta_id: string }[] | null };
+const CAMPI_ALLENAMENTO = "id, data, durata_min, argomenti, titolo, descrizione, presenze(atleta_id)";
+const daRiga = (r: RigaAllenamento): Allenamento => {
+  const { presenze, ...resto } = r;
+  return { ...resto, presenti: (presenze ?? []).map((p) => p.atleta_id) };
+};
+
+/** Diario degli allenamenti del dojo, dal più recente. */
+export async function elencoAllenamenti(dojoId: string): Promise<Allenamento[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("allenamenti")
+    .select(CAMPI_ALLENAMENTO)
+    .eq("dojo_id", dojoId)
+    .order("data", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as unknown as RigaAllenamento[]).map(daRiga);
+}
+
+export async function leggiAllenamento(id: string): Promise<(Allenamento & { dojo_id: string }) | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("allenamenti").select(`dojo_id, ${CAMPI_ALLENAMENTO}`).eq("id", id).maybeSingle();
+  if (!data) return null;
+  const r = data as unknown as RigaAllenamento & { dojo_id: string };
+  return { ...daRiga(r), dojo_id: r.dojo_id };
 }

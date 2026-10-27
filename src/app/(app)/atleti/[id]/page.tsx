@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
-import { elencoIncontri, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { elencoAllenamenti, elencoIncontri, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { presenzeAtleta } from "@/lib/domain/diario";
 import { statoAccesso } from "@/lib/data/accessi";
 import { media, ultimeDue, VOCI_VALUTAZIONE, SCALA } from "@/lib/domain/valutazioni";
 import { proponiNomeUtente } from "@/lib/domain/credenziali";
 import { MISURE, ultimaVariazione } from "@/lib/domain/misure";
 import { analizzaDebolezze, contaPer, mappaColpi, MINIMO_PUNTI_ANALISI, statisticheKumite } from "@/lib/domain/analisi";
 import { nomeTecnica, SITUAZIONI } from "@/lib/domain/kumite";
-import { eta, etichettaMese } from "@/lib/domain/date";
+import { eta, etichettaMese, oggi } from "@/lib/domain/date";
 import type { Situazione } from "@/lib/domain/tipi";
 import { Cintura } from "@/components/Cintura";
 import { GraficoMisure } from "@/components/GraficoMisure";
@@ -30,14 +31,16 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
   const c = await contesto();
   // I permessi del database impediscono già a un atleta di leggere schede altrui.
   // tutte le letture partono insieme
-  const [atleta, misure, incontri, valutazioni, accesso] = await Promise.all([
+  const [atleta, misure, incontri, valutazioni, accesso, allenamenti] = await Promise.all([
     leggiAtleta(id),
     misureDi([id]),
     elencoIncontri(c.dojo.id, id),
     valutazioniDi([id]).catch(() => []), // tabella non ancora creata: la sezione resta vuota
     c.ruolo === "admin" ? statoAccesso(c.dojo.id, id) : Promise.resolve(null),
+    elencoAllenamenti(c.dojo.id).catch(() => []), // diario non ancora creato
   ]);
   if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
+  const pres = presenzeAtleta(id, allenamenti, oggi());
   const { ultima: valUltima, precedente: valPrecedente } = ultimeDue(valutazioni);
   const mediaUltima = media(valUltima?.valori);
   const mediaPrecedente = media(valPrecedente?.valori);
@@ -57,6 +60,9 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
             <span>{atleta.sesso === "M" ? "Maschile" : "Femminile"}</span>
             {atleta.anno_nascita && <span>{eta(atleta.anno_nascita)} anni ({atleta.anno_nascita})</span>}
             {atleta.archiviato && <span>archiviato</span>}
+            {allenamenti.length > 0 && (
+              <span>Presenze: {pres.recenti}/{pres.recentiSvolti} negli ultimi 30 giorni · {pres.totale} in totale</span>
+            )}
           </div>
         </div>
         {c.staff && <Link className="btn small" href={`/atleti/${id}/modifica`}>Modifica dati</Link>}

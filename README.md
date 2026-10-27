@@ -1,6 +1,6 @@
 # FurinkazApp
 
-App per allenatori di karate (風林火山): misure fisiche e valutazioni tecniche mensili degli atleti,
+App per allenatori di karate (風林火山): misure fisiche e valutazioni tecniche mensili degli atleti, diario degli allenamenti con presenze,
 analisi degli incontri di kumite (dove ogni atleta subisce più punti, con quale tecnica e in quale situazione).
 
 - **Amministratore**: gestisce tutto, crea gli accessi degli atleti e cambia i ruoli (Impostazioni).
@@ -20,7 +20,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
@@ -111,6 +111,7 @@ src/
       misure/          misure del mese
       valutazioni/     valutazioni tecniche del mese
       kumite/          elenco incontri e registrazione punto per punto
+      diario/          diario degli allenamenti e presenze
       impostazioni/    nome società, inviti, persone con accesso
   components/          pezzi riusabili (grafico, mappa del corpo, barre, elenchi)
   lib/
@@ -149,6 +150,9 @@ Aggiungi una riga in `VOCI_VALUTAZIONE` dentro `src/lib/domain/valutazioni.ts`:
 { chiave: "resistenza", nome: "Resistenza", breve: "Resist." },
 ```
 Compare nel modulo mensile, nel grafico radar e nella media. La scala (1–10) è nella stessa pagina.
+
+### Un nuovo argomento di allenamento (es. difesa personale)
+Aggiungi una riga in `ARGOMENTI` dentro `src/lib/domain/diario.ts`.
 
 ### Una nuova tecnica di kumite
 Aggiungi una riga in `TECNICHE` dentro `src/lib/domain/kumite.ts`. Non rinominare le chiavi già usate:

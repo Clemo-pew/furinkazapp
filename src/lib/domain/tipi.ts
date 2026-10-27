@@ -42,6 +42,17 @@ export interface Valutazione {
   note: string | null;
 }
 
+/** Una seduta del diario allenamenti. `presenti` sono gli id degli atleti presenti. */
+export interface Allenamento {
+  id: string;
+  data: string;
+  durata_min: number | null;
+  argomenti: string[];
+  titolo: string | null;
+  descrizione: string;
+  presenti: string[];
+}
+
 export interface Punto {
   ordine: number;
   lato: Lato;
