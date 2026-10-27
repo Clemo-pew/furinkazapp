@@ -7,9 +7,11 @@ import { Logo } from "@/components/Logo";
 // Struttura comune a tutte le pagine dopo l'accesso.
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const c = await contesto();
-  const voci = c.staff
-    ? MENU.filter((v) => v.ruoli.includes(c.ruolo))
-    : [{ href: `/atleti/${c.atletaId}`, etichetta: "Il mio profilo" }];
+  // Chi ha una scheda atleta (anche se istruttore) ha la voce "Il mio profilo".
+  const voci = [
+    ...(c.atletaId ? [{ href: `/atleti/${c.atletaId}`, etichetta: "Il mio profilo" }] : []),
+    ...MENU.filter((v) => v.ruoli.includes(c.ruolo)),
+  ];
 
   return (
     <>

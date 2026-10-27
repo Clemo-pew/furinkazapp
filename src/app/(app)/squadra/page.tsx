@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { contestoStaff } from "@/lib/data/contesto";
+import { contesto } from "@/lib/data/contesto";
 import { elencoAtleti, elencoIncontri, misureDi, valutazioniDi } from "@/lib/data/query";
 import { media, ultimeDue } from "@/lib/domain/valutazioni";
 import { ultimaVariazione } from "@/lib/domain/misure";
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Squadra" };
 const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ",");
 
 export default async function Squadra() {
-  const c = await contestoStaff();
+  const c = await contesto();
   const atleti = await elencoAtleti(c.dojo.id);
   const ids = atleti.map((a) => a.id);
   const [misure, incontri, valutazioni] = await Promise.all([misureDi(ids), elencoIncontri(c.dojo.id), valutazioniDi(ids).catch(() => [])]);
@@ -22,14 +22,14 @@ export default async function Squadra() {
     <>
       <div className="testata">
         <h1>Squadra</h1>
-        <Link className="btn primary" href="/atleti/nuovo">+ Aggiungi atleta</Link>
+        {c.staff && <Link className="btn primary" href="/atleti/nuovo">+ Aggiungi atleta</Link>}
       </div>
 
       {!atleti.length ? (
         <div className="list"><div className="empty">
           <b>Nessun atleta ancora.</b>
-          <p className="hint">Aggiungi gli atleti, poi ogni mese inserisci peso e misure e registra gli incontri di kumite in allenamento.</p>
-          <Link className="btn" href="/atleti/nuovo">Aggiungi il primo atleta</Link>
+          <p className="hint">{c.staff ? "Aggiungi gli atleti, poi ogni mese inserisci misure e valutazioni e registra gli incontri di kumite in allenamento." : "La squadra è ancora vuota."}</p>
+          {c.staff && <Link className="btn" href="/atleti/nuovo">Aggiungi il primo atleta</Link>}
         </div></div>
       ) : (
         <>

@@ -3,9 +3,10 @@
 App per allenatori di karate (風林火山): misure fisiche e valutazioni tecniche mensili degli atleti,
 analisi degli incontri di kumite (dove ogni atleta subisce più punti, con quale tecnica e in quale situazione).
 
-- **Amministratore**: gestisce tutto e crea gli accessi degli atleti (nome utente e password).
-- **Istruttori**: entrano con un codice invito e gestiscono atleti, misure, valutazioni e incontri.
-- **Atleti**: entrano con le credenziali date dall'allenatore e vedono solo la propria scheda.
+- **Amministratore**: gestisce tutto, crea gli accessi degli atleti e cambia i ruoli (Impostazioni).
+- **Istruttori**: inseriscono e modificano atleti, misure, valutazioni e incontri.
+- **Atleti**: entrano con le credenziali date dall'allenatore e vedono tutta la squadra
+  (schede, misure, valutazioni, incontri), senza poter modificare nulla.
 
 Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel.com)) e
 [Supabase](https://supabase.com) (database e accesso con email e password).
@@ -19,7 +20,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 

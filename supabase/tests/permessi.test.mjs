@@ -50,10 +50,12 @@ await as("A", `select public.accetta_invito($1)`, [codA.toLowerCase()]);
 await throws(() => as("X", `select public.accetta_invito($1)`, [codA]), "un codice già usato non vale più");
 
 // atleta
-ok((await as("A", `select id from atleti`)).rows.map(r => r.id).join() === a1, "l'atleta vede solo la propria scheda");
-ok((await as("A", `select count(*)::int n from misure`)).rows[0].n === 1, "l'atleta vede solo le proprie misure");
-ok((await as("A", `select count(*)::int n from incontri`)).rows[0].n === 1, "l'atleta vede solo i propri incontri");
-ok((await as("A", `select count(*)::int n from punti`)).rows[0].n === 2, "l'atleta vede i punti dei propri incontri");
+ok((await as("A", `select count(*)::int n from atleti`)).rows[0].n === 2, "l'atleta vede tutti gli atleti della squadra");
+ok((await as("A", `select count(*)::int n from misure`)).rows[0].n === 2, "l'atleta vede le misure di tutta la squadra");
+ok((await as("A", `select count(*)::int n from incontri`)).rows[0].n === 2, "l'atleta vede tutti gli incontri della squadra");
+ok((await as("A", `select count(*)::int n from punti`)).rows[0].n === 2, "l'atleta vede i punti degli incontri");
+ok((await as("A", `update misure set valori='{"peso":1}' returning id`)).rows.length === 0, "l'atleta non può modificare le misure di nessuno");
+ok((await as("A", `delete from incontri returning id`)).rows.length === 0, "l'atleta non può cancellare incontri");
 ok((await as("A", `select count(*)::int n from dojos`)).rows[0].n === 1, "l'atleta vede il proprio dojo");
 await throws(() => as("A", `insert into misure (dojo_id, atleta_id, mese) values ($1,$2,'2026-09-01')`, [dojo, a1]), "l'atleta non può scrivere misure");
 ok((await as("A", `update atleti set cintura=10 where id=$1 returning id`, [a1])).rows.length === 0, "l'atleta non può modificare la propria scheda");
@@ -69,15 +71,36 @@ ok((await as("I", `delete from membri where user_id=$1 returning user_id`, [U.A]
 
 // valutazioni
 await as("C", `insert into valutazioni (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-10-01','{"velocita":7}'), ($1,$3,'2026-10-01','{"velocita":9}')`, [dojo, a1, a2]);
-ok((await as("A", `select count(*)::int n from valutazioni`)).rows[0].n === 1, "l'atleta vede solo le proprie valutazioni");
+ok((await as("A", `select count(*)::int n from valutazioni`)).rows[0].n === 2, "l'atleta vede le valutazioni di tutta la squadra");
 await throws(() => as("A", `insert into valutazioni (dojo_id, atleta_id, mese) values ($1,$2,'2026-09-01')`, [dojo, a1]), "l'atleta non può scrivere valutazioni");
 ok((await as("A", `update valutazioni set valori='{"velocita":10}' returning id`)).rows.length === 0, "l'atleta non può alzarsi i voti");
 ok((await as("I", `select count(*)::int n from valutazioni`)).rows[0].n === 2, "l'istruttore vede tutte le valutazioni");
-ok((await as("X", `select count(*)::int n from valutazioni`)).rows[0].n === 0, "un estraneo non vede valutazioni");
+ok((await as("X", `select count(*)::int n from valutazioni where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede valutazioni");
+
+// l'istruttore modifica misure e valutazioni
+ok((await as("I", `update misure set valori='{"peso":64}' where atleta_id=$1 returning id`, [a1])).rows.length === 1, "l'istruttore può modificare le misure");
+ok((await as("I", `update valutazioni set valori='{"velocita":8}' where atleta_id=$1 returning id`, [a1])).rows.length === 1, "l'istruttore può modificare le valutazioni");
+ok((await as("I", `insert into misure (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-09-01','{"peso":62}') returning id`, [dojo, a1])).rows.length === 1, "l'istruttore può inserire misure");
+
+// cambio ruolo
+ok((await as("I", `update membri set ruolo='admin' where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "l'istruttore non può cambiare i ruoli");
+ok((await as("A", `update membri set ruolo='admin' where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "l'atleta non può promuoversi");
+ok((await as("C", `update membri set ruolo='admin' where user_id=$1 returning user_id`, [U.C])).rows.length === 0, "l'amministratore non cambia il proprio ruolo (resta sempre almeno un admin)");
+ok((await as("C", `update membri set ruolo='istruttore' where dojo_id=$1 and user_id=$2 returning user_id`, [dojo, U.A])).rows.length === 1, "l'amministratore promuove un atleta a istruttore");
+ok((await as("A", `insert into valutazioni (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-09-01','{"tecnica":6}') returning id`, [dojo, a2])).rows.length === 1, "da istruttore può inserire valutazioni");
+ok((await as("A", `select atleta_id from membri where user_id=$1`, [U.A])).rows[0].atleta_id === a1, "da istruttore resta collegato alla sua scheda atleta");
+ok((await as("C", `update membri set ruolo='atleta' where dojo_id=$1 and user_id=$2 returning user_id`, [dojo, U.A])).rows.length === 1, "l'amministratore lo riporta ad atleta");
+await throws(() => as("C", `update membri set ruolo='atleta' where dojo_id=$1 and user_id=$2`, [dojo, U.I]), "un istruttore senza scheda non può diventare atleta");
+
+// altra società: i dati restano separati
+const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
+await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);
+ok((await as("A", `select count(*)::int n from atleti where dojo_id=$1`, [dojo2])).rows[0].n === 0, "un atleta non vede gli atleti di un'altra società");
+ok((await as("X", `select count(*)::int n from atleti where dojo_id=$1`, [dojo])).rows[0].n === 0, "un'altra società non vede i nostri atleti");
 
 // estraneo
-ok((await as("X", `select count(*)::int n from atleti`)).rows[0].n === 0, "un estraneo non vede atleti");
-ok((await as("X", `select count(*)::int n from incontri`)).rows[0].n === 0, "un estraneo non vede incontri");
+ok((await as("X", `select count(*)::int n from atleti where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede atleti");
+ok((await as("X", `select count(*)::int n from incontri where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede incontri");
 await throws(() => as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Hacker','M')`, [dojo]), "un estraneo non può aggiungere atleti");
 await throws(() => as("X", `select public.salva_incontro($1)`, [{ dojo_id: dojo, aka_nome: "a", ao_nome: "b", punti: [] }]), "un estraneo non può salvare incontri");
 

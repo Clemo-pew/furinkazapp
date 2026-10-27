@@ -7,7 +7,7 @@ import { elencoAtleti } from "@/lib/data/query";
 import { supabaseServer } from "@/lib/supabase/server";
 import { dataIt } from "@/lib/domain/date";
 import type { Ruolo } from "@/lib/domain/tipi";
-import { FormInvito, FormNomeDojo, PulsanteElimina } from "./Moduli";
+import { FormInvito, FormNomeDojo, PulsanteElimina, SceltaRuolo } from "./Moduli";
 import { eliminaInvito, rimuoviMembro } from "./azioni";
 
 export const metadata: Metadata = { title: "Impostazioni" };
@@ -101,13 +101,24 @@ export default async function Impostazioni() {
 
       <section className="card">
         <h3>Persone con accesso</h3>
+        {admin && (
+          <p className="hint">
+            Puoi cambiare il ruolo di chiunque tranne il tuo. Un atleta promosso a istruttore resta collegato alla sua scheda
+            e continua a vedere «Il mio profilo». Gli atleti vedono tutta la squadra ma non possono modificare nulla.
+          </p>
+        )}
         {(membri ?? []).map((m) => (
           <div className="bar" key={m.user_id} style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
             <span className="grow">
               <b>{nomeUtente(m.user_id)}</b>{m.user_id === c.userId && " (tu)"}
               <br /><span className="hint">{NOMI_RUOLO[m.ruolo as Ruolo]}{m.atleta_id && ` · scheda di ${nomeAtleta(m.atleta_id) ?? "atleta"}`}</span>
             </span>
-            {admin && m.user_id !== c.userId && <PulsanteElimina azione={rimuoviMembro.bind(null, m.user_id)} testo="Togli accesso" />}
+            {admin && m.user_id !== c.userId && (
+              <div className="bar">
+                <SceltaRuolo userId={m.user_id} ruolo={m.ruolo as Ruolo} haScheda={Boolean(m.atleta_id)} />
+                <PulsanteElimina azione={rimuoviMembro.bind(null, m.user_id)} testo="Togli accesso" />
+              </div>
+            )}
           </div>
         ))}
       </section>

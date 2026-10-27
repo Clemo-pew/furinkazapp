@@ -1,6 +1,6 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
-import { creaInvito, rinominaDojo } from "./azioni";
+import { cambiaRuolo, creaInvito, rinominaDojo } from "./azioni";
 
 export function FormNomeDojo({ nome }: { nome: string }) {
   const [stato, azione, attesa] = useActionState(rinominaDojo, undefined);
@@ -61,5 +61,24 @@ export function PulsanteElimina({ azione, testo }: { azione: () => Promise<void>
       onClick={() => (conferma ? avvia(() => azione()) : setConferma(true))}>
       {conferma ? "Conferma" : testo}
     </button>
+  );
+}
+
+const ETICHETTE_RUOLO = { admin: "Amministratore", istruttore: "Istruttore", atleta: "Atleta" } as const;
+
+/** Selettore del ruolo di una persona (solo amministratore). "Atleta" solo per chi ha una scheda collegata. */
+export function SceltaRuolo({ userId, ruolo, haScheda }: { userId: string; ruolo: keyof typeof ETICHETTE_RUOLO; haScheda: boolean }) {
+  const [stato, azione, attesa] = useActionState(cambiaRuolo.bind(null, userId), undefined);
+  const [scelto, setScelto] = useState(ruolo);
+  return (
+    <form action={azione} className="bar" style={{ flexWrap: "nowrap" }}>
+      <select id={`ruolo-${userId}`} name="ruolo" aria-label="Ruolo" value={scelto} onChange={(e) => setScelto(e.target.value as typeof ruolo)} style={{ width: "auto" }}>
+        {(Object.keys(ETICHETTE_RUOLO) as (keyof typeof ETICHETTE_RUOLO)[])
+          .filter((r) => r !== "atleta" || haScheda)
+          .map((r) => <option key={r} value={r}>{ETICHETTE_RUOLO[r]}</option>)}
+      </select>
+      {scelto !== ruolo && <button className="btn small primary" disabled={attesa}>Salva</button>}
+      {stato?.errore && <span className="errore">{stato.errore}</span>}
+    </form>
   );
 }

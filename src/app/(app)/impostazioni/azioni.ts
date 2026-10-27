@@ -49,3 +49,30 @@ export async function rinominaDojo(_: Esito, form: FormData): Promise<Esito> {
   revalidatePath("/", "layout");
   return { ok: "Nome aggiornato" };
 }
+
+const RUOLI = ["admin", "istruttore", "atleta"] as const;
+
+/** L'amministratore cambia il ruolo di un'altra persona (mai il proprio: così resta sempre un amministratore). */
+export async function cambiaRuolo(userId: string, _: Esito, form: FormData): Promise<Esito> {
+  const c = await contestoStaff();
+  if (c.ruolo !== "admin") return { errore: "Solo l'amministratore può cambiare i ruoli." };
+  if (userId === c.userId) return { errore: "Non puoi cambiare il tuo ruolo." };
+  const ruolo = String(form.get("ruolo"));
+  if (!RUOLI.includes(ruolo as (typeof RUOLI)[number])) return { errore: "Ruolo non valido." };
+
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("membri")
+    .update({ ruolo })
+    .eq("dojo_id", c.dojo.id)
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) {
+    if (/membri_check|check constraint/i.test(error.message))
+      return { errore: "Per diventare atleta la persona deve essere collegata a una scheda atleta." };
+    return { errore: error.message };
+  }
+  if (!data?.length) return { errore: "Modifica non consentita." };
+  revalidatePath("/", "layout");
+  return { ok: "Ruolo aggiornato" };
+}

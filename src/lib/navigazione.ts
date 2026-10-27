@@ -10,9 +10,9 @@ export interface VoceMenu {
 }
 
 export const MENU: VoceMenu[] = [
-  { href: "/squadra", etichetta: "Squadra", ruoli: ["admin", "istruttore"] },
+  { href: "/squadra", etichetta: "Squadra", ruoli: ["admin", "istruttore", "atleta"] },
   { href: "/misure", etichetta: "Misure", ruoli: ["admin", "istruttore"] },
   { href: "/valutazioni", etichetta: "Valutazioni", ruoli: ["admin", "istruttore"] },
-  { href: "/kumite", etichetta: "Kumite", ruoli: ["admin", "istruttore"] },
+  { href: "/kumite", etichetta: "Kumite", ruoli: ["admin", "istruttore", "atleta"] },
   { href: "/impostazioni", etichetta: "Impostazioni", ruoli: ["admin", "istruttore"] },
 ];
