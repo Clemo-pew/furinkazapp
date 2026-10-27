@@ -1,0 +1,17 @@
+import type { Ruolo } from "@/lib/domain/tipi";
+
+// Voci del menu principale. Per aggiungere una sezione all'app:
+// 1. crea la cartella in src/app/(app)/<sezione>/page.tsx
+// 2. aggiungi qui la voce con i ruoli che possono vederla.
+export interface VoceMenu {
+  href: string;
+  etichetta: string;
+  ruoli: Ruolo[];
+}
+
+export const MENU: VoceMenu[] = [
+  { href: "/squadra", etichetta: "Squadra", ruoli: ["admin", "istruttore"] },
+  { href: "/misure", etichetta: "Misure del mese", ruoli: ["admin", "istruttore"] },
+  { href: "/kumite", etichetta: "Kumite", ruoli: ["admin", "istruttore"] },
+  { href: "/impostazioni", etichetta: "Impostazioni", ruoli: ["admin", "istruttore"] },
+];
