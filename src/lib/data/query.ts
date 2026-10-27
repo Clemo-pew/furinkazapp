@@ -60,3 +60,19 @@ export async function elencoIncontri(dojoId: string, atletaId?: string): Promise
   if (error) throw error;
   return (data as Incontro[]).map((i) => ({ ...i, punti: [...(i.punti ?? [])].sort((a, b) => a.ordine - b.ordine) }));
 }
+
+/** Tutte le misure del dojo (per le pagine che le leggono insieme agli atleti, in parallelo). */
+export async function misureDelDojo(dojoId: string): Promise<Misura[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("misure").select("id, atleta_id, mese, valori, note").eq("dojo_id", dojoId).order("mese");
+  if (error) throw error;
+  return data as Misura[];
+}
+
+/** Tutte le valutazioni del dojo (vedi misureDelDojo). */
+export async function valutazioniDelDojo(dojoId: string): Promise<Valutazione[]> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("valutazioni").select("id, atleta_id, mese, valori, note").eq("dojo_id", dojoId).order("mese");
+  if (error) throw error;
+  return data as Valutazione[];
+}

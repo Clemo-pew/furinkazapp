@@ -27,8 +27,11 @@ export const COOKIE_DOJO = "dojo_attivo";
  */
 export const contesto = cache(async (): Promise<Contesto> => {
   const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/accedi");
+  // Verifica veloce del token (vedi middleware.ts).
+  const { data: auth } = await supabase.auth.getClaims();
+  const claims = auth?.claims;
+  if (!claims?.sub) redirect("/accedi");
+  const user = { id: claims.sub, email: claims.email as string | undefined };
 
   const [{ data: membri }, { data: profilo }] = await Promise.all([
     supabase.from("membri").select("ruolo, atleta_id, dojos(id, nome)").eq("user_id", user.id).order("created_at"),

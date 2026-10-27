@@ -9,8 +9,9 @@ export const metadata: Metadata = { title: "Benvenuto" };
 // Primo accesso: l'utente non appartiene ancora a nessun dojo.
 export default async function Benvenuto() {
   const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/accedi");
+  const { data: auth } = await supabase.auth.getClaims();
+  if (!auth?.claims?.sub) redirect("/accedi");
+  const user = { id: auth.claims.sub, email: auth.claims.email as string | undefined };
   const { count } = await supabase.from("membri").select("*", { count: "exact", head: true }).eq("user_id", user.id);
   if (count) redirect("/");
 

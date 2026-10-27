@@ -25,17 +25,18 @@ const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ","
 
 export default async function SchedaAtleta({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound(); // solo identificativi validi arrivano alle query
   const c = await contesto();
   // I permessi del database impediscono già a un atleta di leggere schede altrui.
-  const atleta = await leggiAtleta(id);
-  if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
-
-  const [misure, incontri, valutazioni, accesso] = await Promise.all([
+  // tutte le letture partono insieme
+  const [atleta, misure, incontri, valutazioni, accesso] = await Promise.all([
+    leggiAtleta(id),
     misureDi([id]),
     elencoIncontri(c.dojo.id, id),
     valutazioniDi([id]).catch(() => []), // tabella non ancora creata: la sezione resta vuota
     c.ruolo === "admin" ? statoAccesso(c.dojo.id, id) : Promise.resolve(null),
   ]);
+  if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
   const { ultima: valUltima, precedente: valPrecedente } = ultimeDue(valutazioni);
   const mediaUltima = media(valUltima?.valori);
   const mediaPrecedente = media(valPrecedente?.valori);

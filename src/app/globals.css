@@ -149,3 +149,10 @@ details.bout summary::-webkit-details-marker { display: none; }
   .due { grid-template-columns: 1fr; }
   .score { font-size: 2.4rem; }
 }
+
+/* segnaposto durante il caricamento */
+.scheletro { background: var(--soft); border-radius: 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .scheletro { animation: pulsa 1.2s ease-in-out infinite; }
+  @keyframes pulsa { 50% { opacity: 0.55; } }
+}

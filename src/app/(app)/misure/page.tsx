@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contestoStaff } from "@/lib/data/contesto";
-import { elencoAtleti, misureDi } from "@/lib/data/query";
+import { elencoAtleti, misureDelDojo } from "@/lib/data/query";
 import { meseCorrente, meseEsteso, primoDelMese } from "@/lib/domain/date";
 import { MISURE, valorePrecedente } from "@/lib/domain/misure";
 import { SceltaMese } from "@/components/SceltaMese";
@@ -14,8 +14,7 @@ export default async function MisureDelMese({ searchParams }: { searchParams: Pr
   const richiesto = (await searchParams).mese;
   const mese = richiesto && /^\d{4}-\d{2}$/.test(richiesto) ? richiesto : meseCorrente();
   const giorno = primoDelMese(mese);
-  const atleti = await elencoAtleti(c.dojo.id);
-  const misure = await misureDi(atleti.map((a) => a.id));
+  const [atleti, misure] = await Promise.all([elencoAtleti(c.dojo.id), misureDelDojo(c.dojo.id)]);
   const fatti = atleti.filter((a) => misure.some((m) => m.atleta_id === a.id && m.mese === giorno)).length;
 
   if (!atleti.length) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contestoStaff } from "@/lib/data/contesto";
-import { elencoAtleti, valutazioniDi } from "@/lib/data/query";
+import { elencoAtleti, valutazioniDelDojo } from "@/lib/data/query";
 import { meseCorrente, meseEsteso, primoDelMese } from "@/lib/domain/date";
 import { SCALA } from "@/lib/domain/valutazioni";
 import type { Valutazione } from "@/lib/domain/tipi";
@@ -15,15 +15,11 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
   const richiesto = (await searchParams).mese;
   const mese = richiesto && /^\d{4}-\d{2}$/.test(richiesto) ? richiesto : meseCorrente();
   const giorno = primoDelMese(mese);
-  const atleti = await elencoAtleti(c.dojo.id);
-
-  let valutazioni: Valutazione[] = [];
   let tabellaMancante = false;
-  try {
-    valutazioni = await valutazioniDi(atleti.map((a) => a.id));
-  } catch {
-    tabellaMancante = true;
-  }
+  const [atleti, valutazioni] = await Promise.all([
+    elencoAtleti(c.dojo.id),
+    valutazioniDelDojo(c.dojo.id).catch((): Valutazione[] => { tabellaMancante = true; return []; }),
+  ]);
 
   if (!atleti.length) {
     return (

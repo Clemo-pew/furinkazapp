@@ -25,7 +25,10 @@ export async function middleware(request: NextRequest) {
   });
 
   // Aggiorna la sessione (non spostare: deve restare subito dopo la creazione del client).
-  const { data: { user } } = await supabase.auth.getUser();
+  // getClaims verifica il token in locale (con le chiavi asimmetriche di Supabase),
+  // senza una chiamata al server di autenticazione a ogni pagina.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? data.claims : null;
 
   if (!user && !PUBBLICHE.some((p) => pathname.startsWith(p))) {
     const url = request.nextUrl.clone();

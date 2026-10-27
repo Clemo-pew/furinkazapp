@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contesto } from "@/lib/data/contesto";
-import { elencoAtleti, elencoIncontri, misureDi, valutazioniDi } from "@/lib/data/query";
+import { elencoAtleti, elencoIncontri, misureDelDojo, valutazioniDelDojo } from "@/lib/data/query";
 import { media, ultimeDue } from "@/lib/domain/valutazioni";
 import { ultimaVariazione } from "@/lib/domain/misure";
 import { debolezzaPrincipale, statisticheKumite } from "@/lib/domain/analisi";
@@ -14,9 +14,13 @@ const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ","
 
 export default async function Squadra() {
   const c = await contesto();
-  const atleti = await elencoAtleti(c.dojo.id);
-  const ids = atleti.map((a) => a.id);
-  const [misure, incontri, valutazioni] = await Promise.all([misureDi(ids), elencoIncontri(c.dojo.id), valutazioniDi(ids).catch(() => [])]);
+  // tutte le letture partono insieme
+  const [atleti, misure, incontri, valutazioni] = await Promise.all([
+    elencoAtleti(c.dojo.id),
+    misureDelDojo(c.dojo.id),
+    elencoIncontri(c.dojo.id),
+    valutazioniDelDojo(c.dojo.id).catch(() => []),
+  ]);
 
   return (
     <>
