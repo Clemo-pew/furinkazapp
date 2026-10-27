@@ -39,7 +39,16 @@ export interface Valutazione {
   atleta_id: string;
   mese: string;
   valori: Record<string, number>;
+  /** Voto di ogni kata valutato quel mese (chiavi in domain/kata.ts). */
+  kata: Record<string, number>;
   note: string | null;
+}
+
+/** Un kata che l'atleta conosce, con la data in cui l'ha imparato (se nota). */
+export interface KataConosciuto {
+  atleta_id: string;
+  kata: string;
+  dal: string | null;
 }
 
 /** Una seduta del diario allenamenti. `presenti` sono gli id degli atleti presenti. */

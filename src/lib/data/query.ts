@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Allenamento, Atleta, Incontro, Misura, Valutazione } from "@/lib/domain/tipi";
+import type { Allenamento, Atleta, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -33,17 +33,23 @@ export async function misureDi(atletaIds: string[]): Promise<Misura[]> {
   return data as Misura[];
 }
 
+/**
+ * Legge le valutazioni con un filtro. Se la colonna dei kata non esiste ancora
+ * (migrazione 0005 non eseguita) rilegge senza, così il resto dell'app funziona.
+ */
+async function leggiValutazioni(filtro: (q: any) => any): Promise<Valutazione[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const supabase = await supabaseServer();
+  const prova = async (campi: string) => filtro(supabase.from("valutazioni").select(campi)).order("mese");
+  let { data, error } = await prova("id, atleta_id, mese, valori, kata, note");
+  if (error && /kata/.test(error.message)) ({ data, error } = await prova("id, atleta_id, mese, valori, note"));
+  if (error) throw error;
+  return (data as Valutazione[]).map((v) => ({ ...v, kata: v.kata ?? {} }));
+}
+
 /** Valutazioni tecniche di uno o più atleti, dalla più vecchia alla più recente. */
 export async function valutazioniDi(atletaIds: string[]): Promise<Valutazione[]> {
   if (!atletaIds.length) return [];
-  const supabase = await supabaseServer();
-  const { data, error } = await supabase
-    .from("valutazioni")
-    .select("id, atleta_id, mese, valori, note")
-    .in("atleta_id", atletaIds)
-    .order("mese");
-  if (error) throw error;
-  return data as Valutazione[];
+  return leggiValutazioni((q) => q.in("atleta_id", atletaIds));
 }
 
 /** Incontri del dojo con i punti, dal più recente. Se indicato, solo quelli di un atleta. */
@@ -71,10 +77,7 @@ export async function misureDelDojo(dojoId: string): Promise<Misura[]> {
 
 /** Tutte le valutazioni del dojo (vedi misureDelDojo). */
 export async function valutazioniDelDojo(dojoId: string): Promise<Valutazione[]> {
-  const supabase = await supabaseServer();
-  const { data, error } = await supabase.from("valutazioni").select("id, atleta_id, mese, valori, note").eq("dojo_id", dojoId).order("mese");
-  if (error) throw error;
-  return data as Valutazione[];
+  return leggiValutazioni((q) => q.eq("dojo_id", dojoId));
 }
 
 type RigaAllenamento = Omit<Allenamento, "presenti"> & { presenze: { atleta_id: string }[] | null };
@@ -103,4 +106,14 @@ export async function leggiAllenamento(id: string): Promise<(Allenamento & { doj
   if (!data) return null;
   const r = data as unknown as RigaAllenamento & { dojo_id: string };
   return { ...daRiga(r), dojo_id: r.dojo_id };
+}
+
+/** Kata conosciuti dagli atleti del dojo (o di un solo atleta). Vuoto se la tabella non esiste ancora. */
+export async function kataConosciuti(dojoId: string, atletaId?: string): Promise<KataConosciuto[]> {
+  const supabase = await supabaseServer();
+  let q = supabase.from("kata_conosciuti").select("atleta_id, kata, dal").eq("dojo_id", dojoId);
+  if (atletaId) q = q.eq("atleta_id", atletaId);
+  const { data, error } = await q;
+  if (error) return [];
+  return data as KataConosciuto[];
 }

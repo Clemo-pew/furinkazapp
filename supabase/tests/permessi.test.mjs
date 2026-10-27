@@ -105,6 +105,15 @@ ok((await as("A", `select count(*)::int n from presenze`)).rows[0].n === 1, "l'a
 await throws(() => as("A", `select public.salva_allenamento($1)`, [{ dojo_id: dojo, descrizione: "x", presenti: [] }]), "l'atleta non può scrivere nel diario");
 ok((await as("A", `delete from allenamenti returning id`)).rows.length === 0, "l'atleta non può cancellare allenamenti");
 
+// kata
+ok((await as("I", `insert into kata_conosciuti (atleta_id, dojo_id, kata, dal) values ($1,$2,'heian_shodan','2025-09-01'), ($1,$2,'heian_nidan',null) returning kata`, [a1, dojo])).rows.length === 2, "l'istruttore segna i kata conosciuti");
+await throws(() => as("I", `insert into kata_conosciuti (atleta_id, dojo_id, kata) values ($1,$2,'Heian Shodan!')`, [a1, dojo]), "le chiavi dei kata sono controllate");
+ok((await as("A", `select count(*)::int n from kata_conosciuti`)).rows[0].n === 2, "l'atleta vede i kata conosciuti");
+await throws(() => as("A", `insert into kata_conosciuti (atleta_id, dojo_id, kata) values ($1,$2,'tekki_shodan')`, [a1, dojo]), "l'atleta non può aggiungersi kata");
+ok((await as("I", `update valutazioni set kata='{"heian_shodan":7.5}' where atleta_id=$1 and mese='2026-10-01' returning kata`, [a1])).rows[0].kata.heian_shodan === 7.5, "l'istruttore vota i kata nella valutazione");
+ok((await as("A", `update valutazioni set kata='{"heian_shodan":10}' returning id`)).rows.length === 0, "l'atleta non può cambiare i voti dei kata");
+ok((await as("X", `select count(*)::int n from kata_conosciuti where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i kata");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);

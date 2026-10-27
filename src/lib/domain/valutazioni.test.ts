@@ -10,7 +10,7 @@ describe("valutazioni", () => {
     expect(media(null)).toBeNull();
   });
   it("trova ultima e precedente per mese", () => {
-    const v = (mese: string) => ({ id: mese, atleta_id: "x", mese, valori: {}, note: null });
+    const v = (mese: string) => ({ id: mese, atleta_id: "x", mese, valori: {}, kata: {}, note: null });
     const { ultima, precedente } = ultimeDue([v("2026-10-01"), v("2026-08-01"), v("2026-09-01")]);
     expect([ultima?.mese, precedente?.mese]).toEqual(["2026-10-01", "2026-09-01"]);
   });

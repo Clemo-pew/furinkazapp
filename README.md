@@ -20,7 +20,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
@@ -153,6 +153,10 @@ Compare nel modulo mensile, nel grafico radar e nella media. La scala (1–10) �
 
 ### Un nuovo argomento di allenamento (es. difesa personale)
 Aggiungi una riga in `ARGOMENTI` dentro `src/lib/domain/diario.ts`.
+
+### Un nuovo kata
+Aggiungi una riga in `KATA` dentro `src/lib/domain/kata.ts`, con chiave in minuscolo senza spazi
+(es. `{ chiave: "kanku_sho", nome: "Kanku Sho", gruppo: "Superiori" }`).
 
 ### Una nuova tecnica di kumite
 Aggiungi una riga in `TECNICHE` dentro `src/lib/domain/kumite.ts`. Non rinominare le chiavi già usate:

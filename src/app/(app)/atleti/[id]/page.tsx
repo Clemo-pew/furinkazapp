@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
-import { elencoAllenamenti, elencoIncontri, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { elencoAllenamenti, elencoIncontri, kataConosciuti, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { storicoKata } from "@/lib/domain/kata";
+import { KataAtleta } from "./KataAtleta";
 import { presenzeAtleta } from "@/lib/domain/diario";
 import { statoAccesso } from "@/lib/data/accessi";
 import { media, ultimeDue, VOCI_VALUTAZIONE, SCALA } from "@/lib/domain/valutazioni";
@@ -31,16 +33,18 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
   const c = await contesto();
   // I permessi del database impediscono già a un atleta di leggere schede altrui.
   // tutte le letture partono insieme
-  const [atleta, misure, incontri, valutazioni, accesso, allenamenti] = await Promise.all([
+  const [atleta, misure, incontri, valutazioni, accesso, allenamenti, kata] = await Promise.all([
     leggiAtleta(id),
     misureDi([id]),
     elencoIncontri(c.dojo.id, id),
     valutazioniDi([id]).catch(() => []), // tabella non ancora creata: la sezione resta vuota
     c.ruolo === "admin" ? statoAccesso(c.dojo.id, id) : Promise.resolve(null),
     elencoAllenamenti(c.dojo.id).catch(() => []), // diario non ancora creato
+    kataConosciuti(c.dojo.id, id),
   ]);
   if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
   const pres = presenzeAtleta(id, allenamenti, oggi());
+  const storiciKata = Object.fromEntries(kata.map((k) => [k.kata, storicoKata(valutazioni, k.kata)]));
   const { ultima: valUltima, precedente: valPrecedente } = ultimeDue(valutazioni);
   const mediaUltima = media(valUltima?.valori);
   const mediaPrecedente = media(valPrecedente?.valori);
@@ -142,6 +146,8 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
           </details>
         )}
       </section>
+
+      <KataAtleta atletaId={id} conosciuti={kata} storici={storiciKata} staff={c.staff} />
 
       <section className="card">
         <div className="testata">

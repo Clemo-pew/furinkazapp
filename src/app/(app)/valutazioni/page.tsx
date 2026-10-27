@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contestoStaff } from "@/lib/data/contesto";
-import { elencoAtleti, valutazioniDelDojo } from "@/lib/data/query";
+import { elencoAtleti, kataConosciuti, valutazioniDelDojo } from "@/lib/data/query";
+import { ordinaKata } from "@/lib/domain/kata";
 import { meseCorrente, meseEsteso, primoDelMese } from "@/lib/domain/date";
 import { SCALA } from "@/lib/domain/valutazioni";
 import type { Valutazione } from "@/lib/domain/tipi";
@@ -16,9 +17,10 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
   const mese = richiesto && /^\d{4}-\d{2}$/.test(richiesto) ? richiesto : meseCorrente();
   const giorno = primoDelMese(mese);
   let tabellaMancante = false;
-  const [atleti, valutazioni] = await Promise.all([
+  const [atleti, valutazioni, kata] = await Promise.all([
     elencoAtleti(c.dojo.id),
     valutazioniDelDojo(c.dojo.id).catch((): Valutazione[] => { tabellaMancante = true; return []; }),
+    kataConosciuti(c.dojo.id),
   ]);
 
   if (!atleti.length) {
@@ -47,7 +49,7 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
         <div className="testata">
           <div className="stack-s">
             <h1>Valutazioni · <span style={{ textTransform: "capitalize" }}>{meseEsteso(mese)}</span></h1>
-            <p className="hint">{fatti} di {atleti.length} atleti valutati. Voti da {SCALA.min} a {SCALA.max}, anche mezzi voti. Lascia vuoto ciò che non hai valutato.</p>
+            <p className="hint">{fatti} di {atleti.length} atleti valutati. Voti da {SCALA.min} a {SCALA.max}, anche mezzi voti. Lascia vuoto ciò che non hai valutato. I kata da votare sono quelli segnati come conosciuti nella scheda dell'atleta.</p>
           </div>
           <SceltaMese mese={mese} percorso="/valutazioni" />
         </div>
@@ -58,7 +60,9 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
         const precedente = mie.filter((v) => v.mese < giorno).at(-1);
         return (
           <SchedaValutazione key={`${a.id}-${mese}-${corrente?.id ?? "nuovo"}`} atleta={{ id: a.id, nome: a.nome }} mese={mese}
-            valori={corrente?.valori ?? null} note={corrente?.note ?? null} precedenti={precedente?.valori ?? null} puoEliminare={c.ruolo === "admin"} />
+            valori={corrente?.valori ?? null} note={corrente?.note ?? null} precedenti={precedente?.valori ?? null} puoEliminare={c.ruolo === "admin"}
+            kataConosciuti={ordinaKata(kata.filter((k) => k.atleta_id === a.id).map((k) => k.kata))}
+            votiKata={corrente?.kata ?? null} votiKataPrecedenti={precedente?.kata ?? null} />
         );
       })}
     </>
