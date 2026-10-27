@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useActionState, useRef } from "react";
 import { MISURE } from "@/lib/domain/misure";
 import { salvaMisure } from "./azioni";
-import { EliminaMisure } from "@/components/EliminaMisure";
+import { EliminaRilevazione } from "@/components/EliminaRilevazione";
 
 interface Props {
   atleta: { id: string; nome: string };
@@ -49,7 +49,7 @@ export function SchedaMisure({ atleta, mese, valori, precedenti, puoEliminare = 
       <div className="bar">
         <button className="btn small primary" disabled={attesa}>{valori ? "Aggiorna" : "Salva"}</button>
         {haPrecedenti && <button type="button" className="btn small" onClick={copiaPrecedenti}>Copia valori precedenti</button>}
-        {valori && puoEliminare && <><span className="grow" /><EliminaMisure atletaId={atleta.id} mese={mese} /></>}
+        {valori && puoEliminare && <><span className="grow" /><EliminaRilevazione tipo="misure" atletaId={atleta.id} mese={mese} /></>}
       </div>
     </form>
   );

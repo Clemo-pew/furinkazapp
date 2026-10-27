@@ -39,3 +39,22 @@ export async function salvaValutazione(_: Esito, form: FormData): Promise<Esito>
   revalidatePath("/squadra");
   return { ok: true };
 }
+
+/** Elimina una valutazione mensile inserita per errore. Solo amministratore. */
+export async function eliminaValutazione(atletaId: string, mese: string): Promise<{ errore?: string }> {
+  const c = await contestoStaff();
+  if (c.ruolo !== "admin") return { errore: "Solo l'amministratore può eliminare le valutazioni." };
+  if (!/^\d{4}-\d{2}(-01)?$/.test(mese)) return { errore: "Mese non valido." };
+  const supabase = await supabaseServer();
+  const { error } = await supabase
+    .from("valutazioni")
+    .delete()
+    .eq("dojo_id", c.dojo.id)
+    .eq("atleta_id", atletaId)
+    .eq("mese", primoDelMese(mese));
+  if (error) return { errore: error.message };
+  revalidatePath("/valutazioni");
+  revalidatePath(`/atleti/${atletaId}`);
+  revalidatePath("/squadra");
+  return {};
+}

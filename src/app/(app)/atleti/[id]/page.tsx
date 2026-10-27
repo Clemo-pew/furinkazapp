@@ -13,7 +13,7 @@ import { eta, etichettaMese } from "@/lib/domain/date";
 import type { Situazione } from "@/lib/domain/tipi";
 import { Cintura } from "@/components/Cintura";
 import { GraficoMisure } from "@/components/GraficoMisure";
-import { EliminaMisure } from "@/components/EliminaMisure";
+import { EliminaRilevazione } from "@/components/EliminaRilevazione";
 import { MappaColpi } from "@/components/MappaColpi";
 import { Barre } from "@/components/Barre";
 import { ElencoIncontri } from "@/components/ElencoIncontri";
@@ -105,6 +105,36 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
             </div>
           </div>
         )}
+        {valutazioni.length > 0 && (
+          <details>
+            <summary className="hint" style={{ cursor: "pointer" }}>Storico delle valutazioni ({valutazioni.length})</summary>
+            <div className="tbl" style={{ marginTop: 8 }}>
+              <table style={{ minWidth: 600 }}>
+                <thead>
+                  <tr>
+                    <th>Mese</th>
+                    {VOCI_VALUTAZIONE.map((v) => <th key={v.chiave} className="r">{v.breve}</th>)}
+                    <th className="r">Media</th>
+                    {c.ruolo === "admin" && <th />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...valutazioni].reverse().map((r) => {
+                    const m = media(r.valori);
+                    return (
+                      <tr key={r.id}>
+                        <td className="num">{etichettaMese(r.mese)}</td>
+                        {VOCI_VALUTAZIONE.map((v) => <td key={v.chiave} className="r num">{r.valori[v.chiave] != null ? fmt(r.valori[v.chiave]) : "—"}</td>)}
+                        <td className="r num"><b>{m != null ? fmt(m) : "—"}</b></td>
+                        {c.ruolo === "admin" && <td className="r"><div className="bar" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}><EliminaRilevazione tipo="valutazioni" atletaId={id} mese={r.mese} testo="Elimina" /></div></td>}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        )}
       </section>
 
       <section className="card">
@@ -147,7 +177,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
                       <tr key={r.id}>
                         <td className="num">{etichettaMese(r.mese)}</td>
                         {MISURE.map((m) => <td key={m.chiave} className="r num">{r.valori[m.chiave] != null ? fmt(r.valori[m.chiave]) : "—"}</td>)}
-                        {c.ruolo === "admin" && <td className="r"><div className="bar" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}><EliminaMisure atletaId={id} mese={r.mese} testo="Elimina" /></div></td>}
+                        {c.ruolo === "admin" && <td className="r"><div className="bar" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}><EliminaRilevazione tipo="misure" atletaId={id} mese={r.mese} testo="Elimina" /></div></td>}
                       </tr>
                     ))}
                   </tbody>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { media, SCALA, VOCI_VALUTAZIONE } from "@/lib/domain/valutazioni";
 import { salvaValutazione } from "./azioni";
+import { EliminaRilevazione } from "@/components/EliminaRilevazione";
 
 interface Props {
   atleta: { id: string; nome: string };
@@ -10,10 +11,12 @@ interface Props {
   valori: Record<string, number> | null;
   note: string | null;
   precedenti: Record<string, number> | null;
+  /** Solo l'amministratore può eliminare una valutazione. */
+  puoEliminare?: boolean;
 }
 
 /** Riquadro con i voti di un atleta per il mese scelto. */
-export function SchedaValutazione({ atleta, mese, valori, note, precedenti }: Props) {
+export function SchedaValutazione({ atleta, mese, valori, note, precedenti, puoEliminare = false }: Props) {
   const [stato, azione, attesa] = useActionState(salvaValutazione, undefined);
   const form = useRef<HTMLFormElement>(null);
   const [correnti, setCorrenti] = useState<Record<string, number>>(valori ?? {});
@@ -66,6 +69,7 @@ export function SchedaValutazione({ atleta, mese, valori, note, precedenti }: Pr
       <div className="bar">
         <button className="btn small primary" disabled={attesa}>{valori ? "Aggiorna" : "Salva"}</button>
         {precedenti && <button type="button" className="btn small" onClick={copiaPrecedenti}>Parti dai voti precedenti</button>}
+        {valori && puoEliminare && <><span className="grow" /><EliminaRilevazione tipo="valutazioni" atletaId={atleta.id} mese={mese} /></>}
       </div>
     </form>
   );

@@ -57,8 +57,8 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
         const corrente = mie.find((v) => v.mese === giorno);
         const precedente = mie.filter((v) => v.mese < giorno).at(-1);
         return (
-          <SchedaValutazione key={`${a.id}-${mese}`} atleta={{ id: a.id, nome: a.nome }} mese={mese}
-            valori={corrente?.valori ?? null} note={corrente?.note ?? null} precedenti={precedente?.valori ?? null} />
+          <SchedaValutazione key={`${a.id}-${mese}-${corrente?.id ?? "nuovo"}`} atleta={{ id: a.id, nome: a.nome }} mese={mese}
+            valori={corrente?.valori ?? null} note={corrente?.note ?? null} precedenti={precedente?.valori ?? null} puoEliminare={c.ruolo === "admin"} />
         );
       })}
     </>
