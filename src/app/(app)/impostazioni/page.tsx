@@ -7,12 +7,12 @@ import { elencoAtleti } from "@/lib/data/query";
 import { supabaseServer } from "@/lib/supabase/server";
 import { dataIt } from "@/lib/domain/date";
 import type { Ruolo } from "@/lib/domain/tipi";
+import { nomeRuolo, RUOLI } from "@/lib/domain/ruoli";
 import { FormInvito, FormNomeDojo, PulsanteElimina, SceltaRuolo } from "./Moduli";
 import { eliminaInvito, rimuoviMembro } from "./azioni";
 
 export const metadata: Metadata = { title: "Impostazioni" };
 
-const NOMI_RUOLO: Record<Ruolo, string> = { admin: "Amministratore", istruttore: "Istruttore", atleta: "Atleta" };
 
 export default async function Impostazioni() {
   const c = await contestoStaff();
@@ -33,7 +33,7 @@ export default async function Impostazioni() {
     <>
       <div className="testata">
         <h1>Impostazioni</h1>
-        <span className="chip">Il tuo ruolo: {NOMI_RUOLO[c.ruolo]}</span>
+        <span className="chip">Il tuo ruolo: {nomeRuolo(c.ruolo)}</span>
       </div>
 
       {admin && (
@@ -90,7 +90,7 @@ export default async function Impostazioni() {
               <div className="bar" key={i.codice} style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
                 <b className="num" style={{ letterSpacing: ".08em" }}>{i.codice}</b>
                 <span className="grow hint">
-                  {NOMI_RUOLO[i.ruolo as Ruolo]}{i.atleta_id && ` · ${nomeAtleta(i.atleta_id) ?? "atleta"}`} · scade il {dataIt(i.scade_il.slice(0, 10))}
+                  {nomeRuolo(i.ruolo as Ruolo)}{i.atleta_id && ` · ${nomeAtleta(i.atleta_id) ?? "atleta"}`} · scade il {dataIt(i.scade_il.slice(0, 10))}
                 </span>
                 <PulsanteElimina azione={eliminaInvito.bind(null, i.codice)} testo="Annulla" />
               </div>
@@ -102,16 +102,21 @@ export default async function Impostazioni() {
       <section className="card">
         <h3>Persone con accesso</h3>
         {admin && (
+          <>
           <p className="hint">
-            Puoi cambiare il ruolo di chiunque tranne il tuo. Un atleta promosso a istruttore resta collegato alla sua scheda
-            e continua a vedere «Il mio profilo». Gli atleti vedono tutta la squadra ma non possono modificare nulla.
+            Puoi cambiare il ruolo di chiunque tranne il tuo. Un allievo promosso a istruttore resta collegato alla sua scheda
+            e continua a vedere «Il mio profilo».
           </p>
+          <ul className="hint" style={{ margin: 0, paddingLeft: 18 }}>
+            {RUOLI.map((r) => <li key={r.chiave}><b>{r.nome}</b>: {r.descrizione}</li>)}
+          </ul>
+          </>
         )}
         {(membri ?? []).map((m) => (
           <div className="bar" key={m.user_id} style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
             <span className="grow">
               <b>{nomeUtente(m.user_id)}</b>{m.user_id === c.userId && " (tu)"}
-              <br /><span className="hint">{NOMI_RUOLO[m.ruolo as Ruolo]}{m.atleta_id && ` · scheda di ${nomeAtleta(m.atleta_id) ?? "atleta"}`}</span>
+              <br /><span className="hint">{nomeRuolo(m.ruolo as Ruolo)}{m.atleta_id && ` · scheda di ${nomeAtleta(m.atleta_id) ?? "atleta"}`}</span>
             </span>
             {admin && m.user_id !== c.userId && (
               <div className="bar">

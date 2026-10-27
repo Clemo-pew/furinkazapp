@@ -1,7 +1,8 @@
 // Tipi condivisi che rispecchiano le tabelle del database (supabase/migrations).
 // Se aggiungi una colonna in una migrazione, aggiungila anche qui.
 
-export type Ruolo = "admin" | "istruttore" | "atleta";
+/** atleta = Allievo, atleta_plus = Allievo+ (vede le valutazioni). Vedi domain/ruoli.ts. */
+export type Ruolo = "admin" | "istruttore" | "atleta" | "atleta_plus";
 export type Sesso = "M" | "F";
 export type Lato = "aka" | "ao";
 export type Zona = "jodan" | "chudan" | "terra";

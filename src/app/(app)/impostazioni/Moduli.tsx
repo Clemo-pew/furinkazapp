@@ -1,6 +1,8 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { cambiaRuolo, creaInvito, rinominaDojo } from "./azioni";
+import { isAllievo, RUOLI } from "@/lib/domain/ruoli";
+import type { Ruolo } from "@/lib/domain/tipi";
 
 export function FormNomeDojo({ nome }: { nome: string }) {
   const [stato, azione, attesa] = useActionState(rinominaDojo, undefined);
@@ -16,20 +18,18 @@ export function FormNomeDojo({ nome }: { nome: string }) {
 
 export function FormInvito({ admin, atleti }: { admin: boolean; atleti: { id: string; nome: string }[] }) {
   const [stato, azione, attesa] = useActionState(creaInvito, undefined);
-  const [ruolo, setRuolo] = useState("atleta");
+  const [ruolo, setRuolo] = useState<Ruolo>("atleta");
   const [copiato, setCopiato] = useState(false);
 
   return (
     <form action={azione} className="stack-s">
       <div className="griglia">
         <label className="campo">Ruolo
-          <select id="ruolo" name="ruolo" value={ruolo} onChange={(e) => setRuolo(e.target.value)}>
-            <option value="atleta">Atleta</option>
-            {admin && <option value="istruttore">Istruttore</option>}
-            {admin && <option value="admin">Amministratore</option>}
+          <select id="ruolo" name="ruolo" value={ruolo} onChange={(e) => setRuolo(e.target.value as Ruolo)}>
+            {RUOLI.filter((r) => admin || r.chiave === "atleta").map((r) => <option key={r.chiave} value={r.chiave}>{r.nome}</option>)}
           </select>
         </label>
-        {ruolo === "atleta" && (
+        {isAllievo(ruolo) && (
           <label className="campo">Scheda atleta
             <select id="atleta_id" name="atleta_id" required defaultValue="">
               <option value="" disabled>Scegli…</option>
@@ -38,7 +38,7 @@ export function FormInvito({ admin, atleti }: { admin: boolean; atleti: { id: st
           </label>
         )}
       </div>
-      {ruolo === "atleta" && !atleti.length && <p className="hint">Tutti gli atleti hanno già un account collegato, oppure non ne hai ancora aggiunti.</p>}
+      {isAllievo(ruolo) && !atleti.length && <p className="hint">Tutti gli atleti hanno già un account collegato, oppure non ne hai ancora aggiunti.</p>}
       <div className="bar"><button className="btn primary" disabled={attesa}>Genera codice</button></div>
       {stato?.errore && <p className="errore" role="alert">{stato.errore}</p>}
       {stato?.ok && (
@@ -64,18 +64,14 @@ export function PulsanteElimina({ azione, testo }: { azione: () => Promise<void>
   );
 }
 
-const ETICHETTE_RUOLO = { admin: "Amministratore", istruttore: "Istruttore", atleta: "Atleta" } as const;
-
-/** Selettore del ruolo di una persona (solo amministratore). "Atleta" solo per chi ha una scheda collegata. */
-export function SceltaRuolo({ userId, ruolo, haScheda }: { userId: string; ruolo: keyof typeof ETICHETTE_RUOLO; haScheda: boolean }) {
+/** Selettore del ruolo di una persona (solo amministratore). Allievo e Allievo+ solo per chi ha una scheda collegata. */
+export function SceltaRuolo({ userId, ruolo, haScheda }: { userId: string; ruolo: Ruolo; haScheda: boolean }) {
   const [stato, azione, attesa] = useActionState(cambiaRuolo.bind(null, userId), undefined);
-  const [scelto, setScelto] = useState(ruolo);
+  const [scelto, setScelto] = useState<Ruolo>(ruolo);
   return (
     <form action={azione} className="bar" style={{ flexWrap: "nowrap" }}>
-      <select id={`ruolo-${userId}`} name="ruolo" aria-label="Ruolo" value={scelto} onChange={(e) => setScelto(e.target.value as typeof ruolo)} style={{ width: "auto" }}>
-        {(Object.keys(ETICHETTE_RUOLO) as (keyof typeof ETICHETTE_RUOLO)[])
-          .filter((r) => r !== "atleta" || haScheda)
-          .map((r) => <option key={r} value={r}>{ETICHETTE_RUOLO[r]}</option>)}
+      <select id={`ruolo-${userId}`} name="ruolo" aria-label="Ruolo" value={scelto} onChange={(e) => setScelto(e.target.value as Ruolo)} style={{ width: "auto" }}>
+        {RUOLI.filter((r) => !isAllievo(r.chiave) || haScheda).map((r) => <option key={r.chiave} value={r.chiave}>{r.nome}</option>)}
       </select>
       {scelto !== ruolo && <button className="btn small primary" disabled={attesa}>Salva</button>}
       {stato?.errore && <span className="errore">{stato.errore}</span>}

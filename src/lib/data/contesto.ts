@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Dojo, Ruolo } from "@/lib/domain/tipi";
+import { isStaff, vedeValutazioni } from "@/lib/domain/ruoli";
 
 export interface Contesto {
   userId: string;
@@ -14,6 +15,8 @@ export interface Contesto {
   /** Scheda collegata, se l'utente è un atleta. */
   atletaId: string | null;
   staff: boolean;
+  /** Può vedere i voti delle valutazioni (staff e Allievo+). */
+  vedeValutazioni: boolean;
   /** Tutti i dojo dell'utente (per un futuro selettore di società). */
   dojos: { dojo: Dojo; ruolo: Ruolo }[];
 }
@@ -53,7 +56,8 @@ export const contesto = cache(async (): Promise<Contesto> => {
     dojo: attivo.dojo,
     ruolo: attivo.ruolo,
     atletaId: attivo.atletaId,
-    staff: attivo.ruolo === "admin" || attivo.ruolo === "istruttore",
+    staff: isStaff(attivo.ruolo),
+    vedeValutazioni: vedeValutazioni(attivo.ruolo),
     dojos: lista.map(({ dojo, ruolo }) => ({ dojo, ruolo })),
   };
 });

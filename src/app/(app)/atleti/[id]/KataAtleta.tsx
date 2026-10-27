@@ -12,12 +12,14 @@ interface Props {
   /** Voti di ogni kata, dal più vecchio al più recente. */
   storici: Record<string, { mese: string; voto: number }[]>;
   staff: boolean;
+  /** Falso per gli Allievi: vedono i kata conosciuti ma non i voti. */
+  mostraVoti: boolean;
 }
 
 const fmt = (v: number) => String(v).replace(".", ",");
 
 /** Riquadro "Kata" della scheda atleta: kata conosciuti con voti, e modifica per lo staff. */
-export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
+export function KataAtleta({ atletaId, conosciuti, storici, staff, mostraVoti }: Props) {
   const [modifica, setModifica] = useState(false);
   const [scelti, setScelti] = useState<Map<string, string | null>>(new Map(conosciuti.map((k) => [k.kata, k.dal])));
   const [errore, setErrore] = useState<string | null>(null);
@@ -75,14 +77,14 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
               <div className="bar" key={k} style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
                 <span className="grow" style={{ minWidth: 140 }}>
                   <b>{nomeKata(k)}</b>
-                  {s.length > 1 && (
+                  {mostraVoti && s.length > 1 && (
                     <>
                       <br />
                       <span className="hint">Voti: {s.slice(-4).map((x) => fmt(x.voto)).join(" → ")}</span>
                     </>
                   )}
                 </span>
-                <span className="num" style={{ textAlign: "right" }}>
+                {mostraVoti && <span className="num" style={{ textAlign: "right" }}>
                   {ultimo ? (
                     <>
                       <b style={{ fontSize: "1.1rem" }}>{fmt(ultimo.voto)}</b>
@@ -90,7 +92,7 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
                       <br /><span className="hint">{etichettaMese(ultimo.mese)}</span>
                     </>
                   ) : <span className="hint">da valutare</span>}
-                </span>
+                </span>}
               </div>
             );
           })}

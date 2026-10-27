@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { generaPassword } from "@/lib/domain/credenziali";
+import { nomeRuolo } from "@/lib/domain/ruoli";
 import type { StatoAccesso } from "@/lib/data/accessi";
 import { creaAccesso, reimpostaPassword, rimuoviAccesso, type Esito } from "./accesso";
 
@@ -39,10 +40,16 @@ export function AccessoAtleta({ atletaId, stato, nomeUtenteProposto }: { atletaI
 
       {!stato.collegato ? (
         <form action={crea} className="stack-s">
-          <p className="hint">Crea le credenziali e comunicale tu all&apos;atleta. Potrà vedere solo la propria scheda, senza modificarla.</p>
+          <p className="hint">Crea le credenziali e comunicale tu all&apos;atleta. Non potrà modificare nulla. Con «Allievo+» vede anche i voti delle valutazioni.</p>
           <div className="griglia">
             <label className="campo">Nome utente o email
               <input id="login" name="login" defaultValue={nomeUtenteProposto} autoComplete="off" autoCapitalize="none" spellCheck={false} required />
+            </label>
+            <label className="campo">Ruolo
+              <select id="ruolo-accesso" name="ruolo" defaultValue="atleta">
+                <option value="atleta">Allievo (senza voti)</option>
+                <option value="atleta_plus">Allievo+ (vede le valutazioni)</option>
+              </select>
             </label>
             <label className="campo">Password
               <input id="password-nuova" name="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="off" minLength={8} required style={{ fontFamily: "var(--mono)" }} />
@@ -53,7 +60,10 @@ export function AccessoAtleta({ atletaId, stato, nomeUtenteProposto }: { atletaI
         </form>
       ) : (
         <div className="stack-s">
-          <p>Entra con <b className="num">{stato.login ?? "—"}</b></p>
+          <p>
+            Entra con <b className="num">{stato.login ?? "—"}</b>
+            {stato.ruolo && <> come <b>{nomeRuolo(stato.ruolo)}</b> <span className="hint">(si cambia da Impostazioni)</span></>}
+          </p>
           {esitoRimuovi?.errore && <p className="errore" role="alert">{esitoRimuovi.errore}</p>}
           {esitoRimuovi?.ok && <p className="ok">{esitoRimuovi.ok}</p>}
           {mostraReset ? (

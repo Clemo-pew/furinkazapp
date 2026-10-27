@@ -31,6 +31,7 @@ export async function creaAccesso(atletaId: string, _: Esito, form: FormData): P
     if (userId) return { errore: "Questo atleta ha già un accesso." };
     const login = String(form.get("login") ?? "").trim().toLowerCase();
     const password = String(form.get("password") ?? "");
+    const ruolo = String(form.get("ruolo")) === "atleta_plus" ? "atleta_plus" : "atleta";
     const errore = erroreLogin(login) ?? controllaPassword(password);
     if (errore) return { errore };
 
@@ -47,7 +48,7 @@ export async function creaAccesso(atletaId: string, _: Esito, form: FormData): P
     }
 
     const { error: errMembro } = await admin.from("membri").insert({
-      dojo_id: c.dojo.id, user_id: data.user.id, ruolo: "atleta", atleta_id: atleta.id,
+      dojo_id: c.dojo.id, user_id: data.user.id, ruolo, atleta_id: atleta.id,
     });
     if (errMembro) {
       await admin.auth.admin.deleteUser(data.user.id); // annulla: niente account orfani

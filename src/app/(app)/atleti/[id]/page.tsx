@@ -75,6 +75,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
 
       {accesso && <AccessoAtleta atletaId={id} stato={accesso} nomeUtenteProposto={proponiNomeUtente(atleta.nome)} />}
 
+      {c.vedeValutazioni && (
       <section className="card">
         <div className="testata">
           <h3>Valutazioni{valUltima && ` · ${etichettaMese(valUltima.mese)}`}</h3>
@@ -146,8 +147,9 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
           </details>
         )}
       </section>
+      )}
 
-      <KataAtleta atletaId={id} conosciuti={kata} storici={storiciKata} staff={c.staff} />
+      <KataAtleta atletaId={id} conosciuti={kata} storici={storiciKata} staff={c.staff} mostraVoti={c.vedeValutazioni} />
 
       <section className="card">
         <div className="testata">

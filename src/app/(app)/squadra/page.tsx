@@ -23,7 +23,7 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
     elencoAtleti(c.dojo.id),
     misureDelDojo(c.dojo.id),
     elencoIncontri(c.dojo.id),
-    valutazioniDelDojo(c.dojo.id).catch(() => []),
+    c.vedeValutazioni ? valutazioniDelDojo(c.dojo.id).catch(() => []) : Promise.resolve([]),
   ]);
   const ordinati = ordinaAtleti(atleti, criterio, verso);
 
@@ -60,7 +60,7 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
             <table>
               <thead>
                 <tr>
-                  <th>Atleta</th><th className="r">Valutazione</th><th className="r">Peso</th><th className="r">Ultima misura</th>
+                  <th>Atleta</th>{c.vedeValutazioni && <th className="r">Valutazione</th>}<th className="r">Peso</th><th className="r">Ultima misura</th>
                   <th className="r">V-P-S</th><th className="r">Punti fatti / subiti</th><th>Subisce di più</th>
                 </tr>
               </thead>
@@ -80,12 +80,12 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
                         <Link href={`/atleti/${a.id}`}>{a.nome}</Link>
                         <div className="meta"><Cintura grado={a.cintura} />{a.anno_nascita && <span>{eta(a.anno_nascita)} anni</span>}</div>
                       </td>
-                      <td className="r num">
+                      {c.vedeValutazioni && <td className="r num">
                         {mediaVal != null ? fmt(mediaVal) : "—"}
                         {mediaVal != null && mediaPrec != null && mediaVal !== mediaPrec && (
                           <div className={mediaVal > mediaPrec ? "migliora" : "peggiora"}>{mediaVal > mediaPrec ? "+" : ""}{fmt(mediaVal - mediaPrec)}</div>
                         )}
-                      </td>
+                      </td>}
                       <td className="r num">
                         {peso.valore != null ? `${fmt(peso.valore)} kg` : "—"}
                         {peso.delta != null && peso.delta !== 0 && (
@@ -102,7 +102,7 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
               </tbody>
             </table>
           </div>
-          <p className="hint">Valutazione è la media dei voti dell'ultimo mese valutato; punti fatti e subiti sono la media per incontro. Apri un atleta per l&apos;andamento fisico e l&apos;analisi completa.</p>
+          <p className="hint">{c.vedeValutazioni && "Valutazione è la media dei voti dell'ultimo mese valutato; "}Punti fatti e subiti sono la media per incontro. Apri un atleta per l&apos;andamento fisico e l&apos;analisi completa.</p>
         </>
       )}
     </>

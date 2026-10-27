@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { contestoStaff } from "@/lib/data/contesto";
 import { supabaseServer } from "@/lib/supabase/server";
+import { isAllievo, ruoloValido } from "@/lib/domain/ruoli";
 
 export type Esito = { errore?: string; ok?: string } | undefined;
 
@@ -9,13 +10,15 @@ export async function creaInvito(_: Esito, form: FormData): Promise<Esito> {
   const c = await contestoStaff();
   const ruolo = String(form.get("ruolo"));
   const atleta_id = String(form.get("atleta_id") ?? "") || null;
-  if (ruolo === "atleta" && !atleta_id) return { errore: "Scegli la scheda dell'atleta da collegare." };
-  if (ruolo !== "atleta" && c.ruolo !== "admin") return { errore: "Solo l'amministratore può invitare istruttori." };
+  if (!ruoloValido(ruolo)) return { errore: "Ruolo non valido." };
+  const allievo = isAllievo(ruolo);
+  if (allievo && !atleta_id) return { errore: "Scegli la scheda dell'atleta da collegare." };
+  if (ruolo !== "atleta" && c.ruolo !== "admin") return { errore: "Solo l'amministratore può invitare istruttori o Allievi+." };
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase
     .from("inviti")
-    .insert({ dojo_id: c.dojo.id, ruolo, atleta_id: ruolo === "atleta" ? atleta_id : null })
+    .insert({ dojo_id: c.dojo.id, ruolo, atleta_id: allievo ? atleta_id : null })
     .select("codice")
     .single();
   if (error) return { errore: error.message };
@@ -50,7 +53,6 @@ export async function rinominaDojo(_: Esito, form: FormData): Promise<Esito> {
   return { ok: "Nome aggiornato" };
 }
 
-const RUOLI = ["admin", "istruttore", "atleta"] as const;
 
 /** L'amministratore cambia il ruolo di un'altra persona (mai il proprio: così resta sempre un amministratore). */
 export async function cambiaRuolo(userId: string, _: Esito, form: FormData): Promise<Esito> {
@@ -58,7 +60,7 @@ export async function cambiaRuolo(userId: string, _: Esito, form: FormData): Pro
   if (c.ruolo !== "admin") return { errore: "Solo l'amministratore può cambiare i ruoli." };
   if (userId === c.userId) return { errore: "Non puoi cambiare il tuo ruolo." };
   const ruolo = String(form.get("ruolo"));
-  if (!RUOLI.includes(ruolo as (typeof RUOLI)[number])) return { errore: "Ruolo non valido." };
+  if (!ruoloValido(ruolo)) return { errore: "Ruolo non valido." };
 
   const supabase = await supabaseServer();
   const { data, error } = await supabase
@@ -69,7 +71,7 @@ export async function cambiaRuolo(userId: string, _: Esito, form: FormData): Pro
     .select("user_id");
   if (error) {
     if (/membri_check|check constraint/i.test(error.message))
-      return { errore: "Per diventare atleta la persona deve essere collegata a una scheda atleta." };
+      return { errore: "Per diventare Allievo o Allievo+ la persona deve essere collegata a una scheda atleta." };
     return { errore: error.message };
   }
   if (!data?.length) return { errore: "Modifica non consentita." };
