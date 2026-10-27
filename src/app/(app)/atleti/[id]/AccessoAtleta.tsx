@@ -19,7 +19,7 @@ export function AccessoAtleta({ atletaId, stato, nomeUtenteProposto }: { atletaI
 
   if (!stato.disponibile) {
     return (
-      <section className="card">
+      <section className="card" id="accesso">
         <h3>Accesso all&apos;app</h3>
         <p className="hint">
           Per creare gli accessi degli atleti manca la chiave segreta di Supabase su Vercel
@@ -32,7 +32,7 @@ export function AccessoAtleta({ atletaId, stato, nomeUtenteProposto }: { atletaI
   const credenziali = esitoCrea?.credenziali ?? esitoReset?.credenziali;
 
   return (
-    <section className="card">
+    <section className="card" id="accesso">
       <h3>Accesso all&apos;app</h3>
 
       {credenziali && <Credenziali {...credenziali} />}

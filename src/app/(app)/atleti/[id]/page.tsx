@@ -61,6 +61,8 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
       </div>
       {atleta.note && c.staff && <p className="hint">{atleta.note}</p>}
 
+      {accesso && <AccessoAtleta atletaId={id} stato={accesso} nomeUtenteProposto={proponiNomeUtente(atleta.nome)} />}
+
       <section className="card">
         <div className="testata">
           <h3>Valutazioni{valUltima && ` · ${etichettaMese(valUltima.mese)}`}</h3>
@@ -184,7 +186,6 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
           <ElencoIncontri incontri={incontri} staff={c.staff} />
         </>
       )}
-      {accesso && <AccessoAtleta atletaId={id} stato={accesso} nomeUtenteProposto={proponiNomeUtente(atleta.nome)} />}
     </>
   );
 }

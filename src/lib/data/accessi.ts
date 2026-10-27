@@ -11,6 +11,24 @@ export interface StatoAccesso {
   login: string | null;
 }
 
+/**
+ * Per ogni atleta collegato a un account: il nome utente o l'email con cui entra.
+ * Da chiamare solo dopo aver verificato che l'utente è amministratore.
+ */
+export async function accessiAtleti(dojoId: string): Promise<Map<string, string | null>> {
+  const supabase = await supabaseServer();
+  const { data: membri } = await supabase.from("membri").select("user_id, atleta_id").eq("dojo_id", dojoId).not("atleta_id", "is", null);
+  const mappa = new Map<string, string | null>();
+  if (!membri?.length) return mappa;
+  const emailPerUtente = new Map<string, string | undefined>();
+  if (adminConfigurato) {
+    const { data } = await supabaseAdmin().auth.admin.listUsers({ perPage: 1000 });
+    for (const u of data?.users ?? []) emailPerUtente.set(u.id, u.email);
+  }
+  for (const m of membri) mappa.set(m.atleta_id as string, emailPerUtente.has(m.user_id) ? loginDaEmail(emailPerUtente.get(m.user_id)) : null);
+  return mappa;
+}
+
 /** Stato dell'accesso all'app di un atleta. Da chiamare solo dopo aver verificato che l'utente è amministratore. */
 export async function statoAccesso(dojoId: string, atletaId: string): Promise<StatoAccesso> {
   const supabase = await supabaseServer();

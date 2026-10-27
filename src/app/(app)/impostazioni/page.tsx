@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { accessiAtleti } from "@/lib/data/accessi";
+import { adminConfigurato } from "@/lib/supabase/admin";
 import { contestoStaff } from "@/lib/data/contesto";
 import { elencoAtleti } from "@/lib/data/query";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -24,10 +27,14 @@ export default async function Impostazioni() {
   const nomeAtleta = (id: string | null) => atleti.find((a) => a.id === id)?.nome;
   const collegati = new Set((membri ?? []).map((m) => m.atleta_id).filter(Boolean));
   const admin = c.ruolo === "admin";
+  const accessi = admin ? await accessiAtleti(c.dojo.id) : new Map<string, string | null>();
 
   return (
     <>
-      <h1>Impostazioni</h1>
+      <div className="testata">
+        <h1>Impostazioni</h1>
+        <span className="chip">Il tuo ruolo: {NOMI_RUOLO[c.ruolo]}</span>
+      </div>
 
       {admin && (
         <section className="card">
@@ -36,11 +43,44 @@ export default async function Impostazioni() {
         </section>
       )}
 
+      {admin && (
+        <section className="card">
+          <h3>Accessi degli atleti</h3>
+          {!adminConfigurato && (
+            <p className="errore">
+              Per creare gli accessi manca su Vercel la variabile SUPABASE_SERVICE_ROLE_KEY (la chiave segreta di Supabase).
+              Aggiungila e fai Redeploy: i passaggi sono nel README, sezione «Accessi degli atleti».
+            </p>
+          )}
+          {!atleti.length ? (
+            <p className="hint">Nessun atleta ancora. <Link href="/atleti/nuovo">Aggiungi il primo atleta</Link>, poi torna qui per creargli l&apos;accesso.</p>
+          ) : (
+            <>
+              <p className="hint">Crei nome utente e password dalla scheda di ogni atleta e li comunichi tu. L&apos;atleta vede solo la propria scheda.</p>
+              {atleti.map((a) => {
+                const collegato = accessi.has(a.id);
+                const login = accessi.get(a.id);
+                return (
+                  <div className="bar" key={a.id} style={{ borderTop: "1px solid var(--line)", paddingTop: 8 }}>
+                    <span className="grow">
+                      <b>{a.nome}</b>
+                      <br />
+                      <span className="hint">{collegato ? <>Entra con <span className="num">{login ?? "account collegato"}</span></> : "Nessun accesso"}</span>
+                    </span>
+                    <Link className={`btn small ${collegato ? "" : "primary"}`} href={`/atleti/${a.id}#accesso`}>{collegato ? "Gestisci" : "Crea accesso"}</Link>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </section>
+      )}
+
       <section className="card">
-        <h3>Invita qualcuno</h3>
+        <h3>Invita un istruttore</h3>
         <p className="hint">
-          Genera un codice e mandalo alla persona: crea il suo account e inserisce il codice al primo accesso.
-          Un atleta vede solo la propria scheda, le proprie misure e i propri incontri. Il codice vale 14 giorni e si usa una volta.
+          Genera un codice e mandalo alla persona: crea il suo account dalla pagina di accesso e inserisce il codice.
+          Il codice vale 14 giorni e si usa una volta. Per gli atleti è più semplice creare l&apos;accesso qui sopra.
         </p>
         <FormInvito admin={admin} atleti={atleti.filter((a) => !collegati.has(a.id)).map((a) => ({ id: a.id, nome: a.nome }))} />
         {!!inviti?.length && (
