@@ -117,3 +117,11 @@ export async function kataConosciuti(dojoId: string, atletaId?: string): Promise
   if (error) return [];
   return data as KataConosciuto[];
 }
+
+/** Video dei kata scelti dal dojo (kata → ID YouTube). Vuoto se la tabella non esiste ancora. */
+export async function videoKataDelDojo(dojoId: string): Promise<Record<string, string>> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("kata_video").select("kata, youtube_id").eq("dojo_id", dojoId);
+  if (error || !data) return {};
+  return Object.fromEntries(data.map((r) => [r.kata as string, r.youtube_id as string]));
+}

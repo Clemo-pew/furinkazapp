@@ -76,7 +76,7 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff, mostraVoti }:
             return (
               <div className="bar" key={k} style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
                 <span className="grow" style={{ minWidth: 140 }}>
-                  <b>{nomeKata(k)}</b>
+                  <b>{nomeKata(k)}</b> <Link href={`/kata#${k}`} className="hint" style={{ textDecoration: "none" }}>▶ video</Link>
                   {mostraVoti && s.length > 1 && (
                     <>
                       <br />

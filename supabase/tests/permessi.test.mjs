@@ -130,6 +130,13 @@ ok((await as("I", `update valutazioni set kata='{"heian_shodan":7.5}' where atle
 ok((await as("A", `update valutazioni set kata='{"heian_shodan":10}' returning id`)).rows.length === 0, "l'atleta non può cambiare i voti dei kata");
 ok((await as("X", `select count(*)::int n from kata_conosciuti where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i kata");
 
+// video dei kata
+ok((await as("I", `insert into kata_video (dojo_id, kata, youtube_id) values ($1,'tekki_shodan','AbCdEfGhI_-') returning kata`, [dojo])).rows.length === 1, "l'istruttore imposta il video di un kata");
+await throws(() => as("I", `insert into kata_video (dojo_id, kata, youtube_id) values ($1,'jion','non-valido')`, [dojo]), "l'ID del video è controllato");
+ok((await as("A", `select count(*)::int n from kata_video`)).rows[0].n === 1, "l'allievo vede i video");
+await throws(() => as("A", `insert into kata_video (dojo_id, kata, youtube_id) values ($1,'jion','AbCdEfGhI_-')`, [dojo]), "l'allievo non può cambiare i video");
+ok((await as("X", `select count(*)::int n from kata_video where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i video del dojo");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);
