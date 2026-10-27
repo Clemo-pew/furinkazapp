@@ -10,6 +10,8 @@ export const VOCI_VALUTAZIONE = [
   { chiave: "tattica", nome: "Tattica", breve: "Tattica" },
   { chiave: "calci", nome: "Abilità con i calci", breve: "Calci" },
   { chiave: "pugni", nome: "Abilità con i pugni", breve: "Pugni" },
+  { chiave: "riflessi", nome: "Riflessi", breve: "Riflessi" },
+  { chiave: "controllo", nome: "Controllo", breve: "Controllo" },
 ] as const;
 
 /** Scala dei punteggi. */
