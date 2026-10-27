@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Atleta, Incontro, Misura } from "@/lib/domain/tipi";
+import type { Atleta, Incontro, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -31,6 +31,19 @@ export async function misureDi(atletaIds: string[]): Promise<Misura[]> {
     .order("mese");
   if (error) throw error;
   return data as Misura[];
+}
+
+/** Valutazioni tecniche di uno o più atleti, dalla più vecchia alla più recente. */
+export async function valutazioniDi(atletaIds: string[]): Promise<Valutazione[]> {
+  if (!atletaIds.length) return [];
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("valutazioni")
+    .select("id, atleta_id, mese, valori, note")
+    .in("atleta_id", atletaIds)
+    .order("mese");
+  if (error) throw error;
+  return data as Valutazione[];
 }
 
 /** Incontri del dojo con i punti, dal più recente. Se indicato, solo quelli di un atleta. */

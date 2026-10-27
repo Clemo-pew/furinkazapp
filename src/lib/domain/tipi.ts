@@ -33,6 +33,15 @@ export interface Misura {
   note: string | null;
 }
 
+/** Valutazione tecnica mensile dell'allenatore (scala in domain/valutazioni.ts). */
+export interface Valutazione {
+  id: string;
+  atleta_id: string;
+  mese: string;
+  valori: Record<string, number>;
+  note: string | null;
+}
+
 export interface Punto {
   ordine: number;
   lato: Lato;

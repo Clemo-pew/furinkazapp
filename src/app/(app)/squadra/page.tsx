@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contestoStaff } from "@/lib/data/contesto";
-import { elencoAtleti, elencoIncontri, misureDi } from "@/lib/data/query";
+import { elencoAtleti, elencoIncontri, misureDi, valutazioniDi } from "@/lib/data/query";
+import { media, ultimeDue } from "@/lib/domain/valutazioni";
 import { ultimaVariazione } from "@/lib/domain/misure";
 import { debolezzaPrincipale, statisticheKumite } from "@/lib/domain/analisi";
 import { eta, etichettaMese } from "@/lib/domain/date";
@@ -14,7 +15,8 @@ const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ","
 export default async function Squadra() {
   const c = await contestoStaff();
   const atleti = await elencoAtleti(c.dojo.id);
-  const [misure, incontri] = await Promise.all([misureDi(atleti.map((a) => a.id)), elencoIncontri(c.dojo.id)]);
+  const ids = atleti.map((a) => a.id);
+  const [misure, incontri, valutazioni] = await Promise.all([misureDi(ids), elencoIncontri(c.dojo.id), valutazioniDi(ids).catch(() => [])]);
 
   return (
     <>
@@ -35,7 +37,7 @@ export default async function Squadra() {
             <table>
               <thead>
                 <tr>
-                  <th>Atleta</th><th className="r">Peso</th><th className="r">Ultima misura</th>
+                  <th>Atleta</th><th className="r">Valutazione</th><th className="r">Peso</th><th className="r">Ultima misura</th>
                   <th className="r">V-P-S</th><th className="r">Punti fatti / subiti</th><th>Subisce di più</th>
                 </tr>
               </thead>
@@ -46,11 +48,20 @@ export default async function Squadra() {
                   const ultima = mie.at(-1);
                   const k = statisticheKumite(a.id, incontri);
                   const debolezza = debolezzaPrincipale(k.subiti);
+                  const val = ultimeDue(valutazioni.filter((v) => v.atleta_id === a.id));
+                  const mediaVal = media(val.ultima?.valori);
+                  const mediaPrec = media(val.precedente?.valori);
                   return (
                     <tr key={a.id}>
                       <td>
                         <Link href={`/atleti/${a.id}`}>{a.nome}</Link>
                         <div className="meta"><Cintura grado={a.cintura} />{a.anno_nascita && <span>{eta(a.anno_nascita)} anni</span>}</div>
+                      </td>
+                      <td className="r num">
+                        {mediaVal != null ? fmt(mediaVal) : "—"}
+                        {mediaVal != null && mediaPrec != null && mediaVal !== mediaPrec && (
+                          <div className={mediaVal > mediaPrec ? "migliora" : "peggiora"}>{mediaVal > mediaPrec ? "+" : ""}{fmt(mediaVal - mediaPrec)}</div>
+                        )}
                       </td>
                       <td className="r num">
                         {peso.valore != null ? `${fmt(peso.valore)} kg` : "—"}
@@ -68,7 +79,7 @@ export default async function Squadra() {
               </tbody>
             </table>
           </div>
-          <p className="hint">Punti fatti e subiti sono la media per incontro. Apri un atleta per l&apos;andamento fisico e l&apos;analisi completa.</p>
+          <p className="hint">Valutazione è la media dei voti dell'ultimo mese valutato; punti fatti e subiti sono la media per incontro. Apri un atleta per l&apos;andamento fisico e l&apos;analisi completa.</p>
         </>
       )}
     </>

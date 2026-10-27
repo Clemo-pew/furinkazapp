@@ -41,6 +41,7 @@ h3 { margin: 0; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.07em; te
 .hint { color: var(--muted); font-size: 0.86rem; margin: 0; }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .up { color: var(--warn); } .down { color: var(--ao); }
+.migliora { color: var(--good); } .peggiora { color: var(--bad); }
 .errore { color: var(--bad); font-size: 0.88rem; margin: 0; }
 .ok { color: var(--good); font-size: 0.88rem; margin: 0; font-weight: 600; }
 
@@ -84,7 +85,7 @@ input, select, textarea { font: 500 0.95rem var(--body); background: var(--surfa
 
 /* tabella squadra */
 .tbl { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 0.88rem; }
+table { border-collapse: collapse; width: 100%; min-width: 740px; font-size: 0.88rem; }
 th { font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--line); }
 td { padding: 11px 12px; border-top: 1px solid var(--line); vertical-align: middle; }
 tbody tr:hover { background: var(--soft); }

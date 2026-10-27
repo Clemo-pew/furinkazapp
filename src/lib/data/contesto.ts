@@ -55,6 +55,13 @@ export const contesto = cache(async (): Promise<Contesto> => {
   };
 });
 
+/** Per le azioni riservate all'amministratore (es. creare gli accessi degli atleti). */
+export async function contestoAdmin() {
+  const c = await contesto();
+  if (c.ruolo !== "admin") throw new Error("Solo l'amministratore può farlo.");
+  return c;
+}
+
 /** Per le pagine riservate ad allenatori e istruttori. */
 export async function contestoStaff() {
   const c = await contesto();

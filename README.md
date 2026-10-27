@@ -1,10 +1,11 @@
 # FurinkazApp
 
-App per allenatori di karate (風林火山): misure fisiche mensili degli atleti e analisi degli incontri di kumite
-(dove ogni atleta subisce più punti, con quale tecnica e in quale situazione).
+App per allenatori di karate (風林火山): misure fisiche e valutazioni tecniche mensili degli atleti,
+analisi degli incontri di kumite (dove ogni atleta subisce più punti, con quale tecnica e in quale situazione).
 
-- **Allenatore e istruttori**: gestiscono atleti, misure, incontri e inviti.
-- **Atleti**: entrano con un codice invito e vedono solo la propria scheda.
+- **Amministratore**: gestisce tutto e crea gli accessi degli atleti (nome utente e password).
+- **Istruttori**: entrano con un codice invito e gestiscono atleti, misure, valutazioni e incontri.
+- **Atleti**: entrano con le credenziali date dall'allenatore e vedono solo la propria scheda.
 
 Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel.com)) e
 [Supabase](https://supabase.com) (database e accesso con email e password).
@@ -18,20 +19,22 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
 ### 2. Codice su GitHub
-1. Crea un repository su github.com, ad esempio `registro-dojo`, anche privato.
+1. Crea un repository su github.com, ad esempio `furinkazapp`, anche privato.
 2. Clicca **uploading an existing file** e trascina **il contenuto** della cartella del progetto
    (non la cartella stessa), poi **Commit changes**.
 
 ### 3. Pubblicazione su Vercel
-1. Su vercel.com accedi con GitHub, poi **Add New → Project** e scegli `registro-dojo`.
+1. Su vercel.com accedi con GitHub, poi **Add New → Project** e scegli `furinkazapp`.
 2. Apri **Environment Variables** e aggiungi:
    - `NEXT_PUBLIC_SUPABASE_URL` = il Project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = la anon / publishable key
-3. Premi **Deploy**. Alla fine ricevi un indirizzo tipo `registro-dojo.vercel.app`.
+   - `SUPABASE_SERVICE_ROLE_KEY` = la chiave segreta (vedi «Accessi degli atleti» sotto)
+3. Premi **Deploy**. Alla fine ricevi un indirizzo tipo `furinkazapp.vercel.app`.
 
 ### 4. Disattivare le email di conferma
 L'app non invia email. In Supabase → **Authentication → Sign In / Providers → Email**
@@ -42,13 +45,26 @@ perché può solo creare una società nuova e vuota.
 
 ### 5. Primo accesso
 Apri l'app, **Crea account**, poi scegli **Sono l'allenatore, creo la società**.
-Da **Impostazioni** generi i codici invito per istruttori e atleti.
+Da **Impostazioni** generi i codici invito per gli istruttori.
+
+### Accessi degli atleti
+L'amministratore crea l'accesso dalla scheda dell'atleta (riquadro **Accesso all'app**): sceglie
+nome utente (o email) e password e li comunica all'atleta, che entra con **Nome utente o email**.
+Dallo stesso riquadro può **reimpostare la password** o **togliere l'accesso**: misure, valutazioni e
+incontri restano, perché sono legati alla scheda e non all'account.
+
+Per creare account l'app usa la **chiave segreta** di Supabase, che va solo su Vercel:
+1. In Supabase → **Project Settings → API Keys** copia la **secret key** (`sb_secret_…`);
+   nei progetti con le chiavi *Legacy* è la **service_role**.
+2. Su Vercel → **Settings → Environment Variables** aggiungi `SUPABASE_SERVICE_ROLE_KEY` con quel valore.
+   **Senza** il prefisso `NEXT_PUBLIC_`: così resta sul server e non arriva mai nel browser.
+3. **Deployments → ⋯ → Redeploy**.
+
+Non condividere mai questa chiave e non inserirla nel codice: dà accesso completo al database.
 
 ### Se qualcuno dimentica la password
-Senza email non c'è il recupero automatico. In Supabase → **Authentication → Users**
-elimina l'utente, poi dall'app genera un nuovo codice invito: la persona crea un nuovo account
-e lo inserisce. I dati dell'atleta (misure, incontri) restano, perché sono legati alla sua scheda
-e non all'account.
+Atleti: l'amministratore la reimposta dalla scheda. Istruttori: in Supabase → **Authentication → Users**
+elimina l'utente e genera un nuovo codice invito.
 
 ### Limiti del piano gratuito da ricordare
 - Dopo **7 giorni senza attività** Supabase mette in pausa il progetto (succede ad esempio ad agosto).
@@ -63,7 +79,7 @@ Serve [Node.js](https://nodejs.org) 20 o più recente.
 
 ```bash
 npm install
-cp .env.example .env.local     # inserisci URL e chiave di Supabase
+cp .env.example .env.local     # inserisci URL e chiavi di Supabase
 npm run dev                    # apri http://localhost:3000
 ```
 
@@ -71,7 +87,7 @@ npm run dev                    # apri http://localhost:3000
 |---|---|
 | `npm run dev` | avvia l'app in locale |
 | `npm run build` | controlla che l'app si compili come su Vercel |
-| `npm test` | prova la logica (punteggio WKF, statistiche, analisi debolezze, misure) |
+| `npm test` | prova la logica (punteggio WKF, analisi debolezze, misure, valutazioni, credenziali) |
 | `npm run test:db` | esegue lo schema su un Postgres locale e verifica i permessi di ogni ruolo |
 
 Ogni volta che carichi modifiche su GitHub, Vercel ripubblica l'app da solo.
@@ -92,6 +108,7 @@ src/
       squadra/         tabella riassuntiva
       atleti/          scheda atleta, nuovo, modifica
       misure/          misure del mese
+      valutazioni/     valutazioni tecniche del mese
       kumite/          elenco incontri e registrazione punto per punto
       impostazioni/    nome società, inviti, persone con accesso
   components/          pezzi riusabili (grafico, mappa del corpo, barre, elenchi)
@@ -124,6 +141,13 @@ Aggiungi una riga in `src/lib/domain/misure.ts`:
 { chiave: "salto", nome: "Salto da fermo", unita: "cm", passo: 1 },
 ```
 Compare subito nel modulo mensile, nella scheda atleta e nel grafico. Non serve toccare il database.
+
+### Una nuova voce di valutazione (es. resistenza)
+Aggiungi una riga in `VOCI_VALUTAZIONE` dentro `src/lib/domain/valutazioni.ts`:
+```ts
+{ chiave: "resistenza", nome: "Resistenza", breve: "Resist." },
+```
+Compare nel modulo mensile, nel grafico radar e nella media. La scala (1–10) è nella stessa pagina.
 
 ### Una nuova tecnica di kumite
 Aggiungi una riga in `TECNICHE` dentro `src/lib/domain/kumite.ts`. Non rinominare le chiavi già usate:

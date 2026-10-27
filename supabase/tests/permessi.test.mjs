@@ -67,6 +67,14 @@ await throws(() => as("I", `insert into inviti (dojo_id, ruolo) values ($1,'istr
 ok((await as("I", `insert into inviti (dojo_id, ruolo, atleta_id) values ($1,'atleta',$2) returning codice`, [dojo, a2])).rows.length === 1, "l'istruttore può invitare un atleta");
 ok((await as("I", `delete from membri where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "l'istruttore non può rimuovere membri");
 
+// valutazioni
+await as("C", `insert into valutazioni (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-10-01','{"velocita":7}'), ($1,$3,'2026-10-01','{"velocita":9}')`, [dojo, a1, a2]);
+ok((await as("A", `select count(*)::int n from valutazioni`)).rows[0].n === 1, "l'atleta vede solo le proprie valutazioni");
+await throws(() => as("A", `insert into valutazioni (dojo_id, atleta_id, mese) values ($1,$2,'2026-09-01')`, [dojo, a1]), "l'atleta non può scrivere valutazioni");
+ok((await as("A", `update valutazioni set valori='{"velocita":10}' returning id`)).rows.length === 0, "l'atleta non può alzarsi i voti");
+ok((await as("I", `select count(*)::int n from valutazioni`)).rows[0].n === 2, "l'istruttore vede tutte le valutazioni");
+ok((await as("X", `select count(*)::int n from valutazioni`)).rows[0].n === 0, "un estraneo non vede valutazioni");
+
 // estraneo
 ok((await as("X", `select count(*)::int n from atleti`)).rows[0].n === 0, "un estraneo non vede atleti");
 ok((await as("X", `select count(*)::int n from incontri`)).rows[0].n === 0, "un estraneo non vede incontri");

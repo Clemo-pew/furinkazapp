@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
-import { elencoIncontri, leggiAtleta, misureDi } from "@/lib/data/query";
+import { elencoIncontri, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { statoAccesso } from "@/lib/data/accessi";
+import { media, ultimeDue, VOCI_VALUTAZIONE, SCALA } from "@/lib/domain/valutazioni";
+import { proponiNomeUtente } from "@/lib/domain/credenziali";
 import { MISURE, ultimaVariazione } from "@/lib/domain/misure";
 import { analizzaDebolezze, contaPer, mappaColpi, MINIMO_PUNTI_ANALISI, statisticheKumite } from "@/lib/domain/analisi";
 import { nomeTecnica, SITUAZIONI } from "@/lib/domain/kumite";
@@ -13,6 +16,8 @@ import { GraficoMisure } from "@/components/GraficoMisure";
 import { MappaColpi } from "@/components/MappaColpi";
 import { Barre } from "@/components/Barre";
 import { ElencoIncontri } from "@/components/ElencoIncontri";
+import { Radar } from "@/components/Radar";
+import { AccessoAtleta } from "./AccessoAtleta";
 
 export const metadata: Metadata = { title: "Scheda atleta" };
 
@@ -25,7 +30,15 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
   const atleta = await leggiAtleta(id);
   if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
 
-  const [misure, incontri] = await Promise.all([misureDi([id]), elencoIncontri(c.dojo.id, id)]);
+  const [misure, incontri, valutazioni, accesso] = await Promise.all([
+    misureDi([id]),
+    elencoIncontri(c.dojo.id, id),
+    valutazioniDi([id]).catch(() => []), // tabella non ancora creata: la sezione resta vuota
+    c.ruolo === "admin" ? statoAccesso(c.dojo.id, id) : Promise.resolve(null),
+  ]);
+  const { ultima: valUltima, precedente: valPrecedente } = ultimeDue(valutazioni);
+  const mediaUltima = media(valUltima?.valori);
+  const mediaPrecedente = media(valPrecedente?.valori);
   const k = statisticheKumite(id, incontri);
   const deb = analizzaDebolezze(k.subiti);
   const prima = misure[0], ultima = misure.at(-1);
@@ -50,11 +63,53 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
 
       <section className="card">
         <div className="testata">
+          <h3>Valutazioni{valUltima && ` · ${etichettaMese(valUltima.mese)}`}</h3>
+          {c.staff && <Link className="btn small" href="/valutazioni">Inserisci valutazioni</Link>}
+        </div>
+        {!valUltima ? (
+          <p className="hint">Nessuna valutazione ancora.{c.staff && " Inseriscila dalla sezione Valutazioni."}</p>
+        ) : (
+          <div className="due" style={{ alignItems: "center" }}>
+            <Radar attuale={valUltima.valori} precedente={valPrecedente?.valori} />
+            <div className="stack-s">
+              <div className="stat">
+                <span>Media</span>
+                <b>{mediaUltima != null ? fmt(mediaUltima) : "—"}<span className="hint"> / {SCALA.max}</span></b>
+                <small className={mediaUltima != null && mediaPrecedente != null ? (mediaUltima >= mediaPrecedente ? "migliora" : "peggiora") : ""}>
+                  {mediaUltima != null && mediaPrecedente != null
+                    ? `${mediaUltima - mediaPrecedente >= 0 ? "+" : ""}${fmt(mediaUltima - mediaPrecedente)} da ${etichettaMese(valPrecedente!.mese)}`
+                    : "\u00a0"}
+                </small>
+              </div>
+              {VOCI_VALUTAZIONE.map((v) => {
+                const val = valUltima.valori[v.chiave];
+                const prec = valPrecedente?.valori[v.chiave];
+                const d = val != null && prec != null ? val - prec : null;
+                return (
+                  <div className="brow" key={v.chiave} style={{ gridTemplateColumns: "minmax(0,9.5rem) 1fr 3.2rem" }}>
+                    <span>{v.nome}</span>
+                    <div className="track"><i style={{ width: `${((val ?? 0) / SCALA.max) * 100}%`, background: "var(--brand)" }} /></div>
+                    <span className="num" style={{ color: "var(--ink)" }}>
+                      {val != null ? fmt(val) : "—"}
+                      {d ? <span className={d > 0 ? "migliora" : "peggiora"}> {d > 0 ? "▲" : "▼"}</span> : null}
+                    </span>
+                  </div>
+                );
+              })}
+              {valPrecedente && <p className="hint">Tratteggio nel grafico: valutazione di {etichettaMese(valPrecedente.mese)}.</p>}
+              {valUltima.note && <p className="hint">«{valUltima.note}»</p>}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="card">
+        <div className="testata">
           <h3>Fisico{ultima && ` · ultima rilevazione ${etichettaMese(ultima.mese)}`}</h3>
           {c.staff && <Link className="btn small" href="/misure">Inserisci misure</Link>}
         </div>
         {!misure.length ? (
-          <p className="hint">Nessuna misura ancora.{c.staff && " Inseriscile dalla sezione «Misure del mese»."}</p>
+          <p className="hint">Nessuna misura ancora.{c.staff && " Inseriscile dalla sezione Misure."}</p>
         ) : (
           <>
             <div className="stats">
@@ -129,6 +184,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
           <ElencoIncontri incontri={incontri} staff={c.staff} />
         </>
       )}
+      {accesso && <AccessoAtleta atletaId={id} stato={accesso} nomeUtenteProposto={proponiNomeUtente(atleta.nome)} />}
     </>
   );
 }

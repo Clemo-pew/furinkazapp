@@ -4,7 +4,7 @@ import { contestoStaff } from "@/lib/data/contesto";
 import { elencoAtleti, misureDi } from "@/lib/data/query";
 import { meseCorrente, meseEsteso, primoDelMese } from "@/lib/domain/date";
 import { MISURE, valorePrecedente } from "@/lib/domain/misure";
-import { SceltaMese } from "./SceltaMese";
+import { SceltaMese } from "@/components/SceltaMese";
 import { SchedaMisure } from "./SchedaMisure";
 
 export const metadata: Metadata = { title: "Misure del mese" };

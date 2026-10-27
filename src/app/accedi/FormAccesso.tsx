@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { emailDaLogin } from "@/lib/domain/credenziali";
 
 const MESSAGGI: Record<string, string> = {
-  "Invalid login credentials": "Email o password non corretti.",
+  "Invalid login credentials": "Nome utente, email o password non corretti.",
   "Email not confirmed": "Account non confermato: l'amministratore deve disattivare la conferma email in Supabase.",
   "User already registered": "Esiste già un account con questa email. Accedi.",
 };
@@ -20,7 +21,9 @@ export function FormAccesso() {
   async function invia(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const email = String(f.get("email")).trim();
+    const login = String(f.get("login")).trim();
+    // gli atleti entrano con il nome utente creato dall'allenatore
+    const email = modo === "accedi" ? emailDaLogin(login) : login.toLowerCase();
     const password = String(f.get("password"));
     setErrore(null); setInfo(null); setAttesa(true);
     const supabase = supabaseBrowser();
@@ -54,7 +57,11 @@ export function FormAccesso() {
       {modo === "registrati" && (
         <label className="campo">Nome e cognome<input id="nome" name="nome" required autoComplete="name" /></label>
       )}
-      <label className="campo">Email<input id="email" name="email" type="email" required autoComplete="email" /></label>
+      {modo === "accedi" ? (
+        <label className="campo">Nome utente o email<input id="login" name="login" required autoComplete="username" autoCapitalize="none" spellCheck={false} /></label>
+      ) : (
+        <label className="campo">Email<input id="email" name="login" type="email" required autoComplete="email" /></label>
+      )}
       <label className="campo">Password
         <input id="password" name="password" type="password" required minLength={8}
           autoComplete={modo === "accedi" ? "current-password" : "new-password"} />
@@ -63,7 +70,7 @@ export function FormAccesso() {
       {info && <p className="ok" role="status">{info}</p>}
       <button className="btn primary" disabled={attesa}>{attesa ? "Attendi…" : modo === "accedi" ? "Accedi" : "Crea account"}</button>
       {modo === "registrati" && (
-        <p className="hint">Sei un atleta o un istruttore? Crea l&apos;account, poi inserisci il codice invito che ti ha dato l&apos;allenatore.</p>
+        <p className="hint">Sei un atleta? Non serve registrarti: nome utente e password te li dà l&apos;allenatore. Gli istruttori creano l&apos;account e poi inseriscono il codice invito.</p>
       )}
     </form>
   );
