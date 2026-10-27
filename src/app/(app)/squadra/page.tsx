@@ -7,13 +7,17 @@ import { ultimaVariazione } from "@/lib/domain/misure";
 import { debolezzaPrincipale, statisticheKumite } from "@/lib/domain/analisi";
 import { eta, etichettaMese } from "@/lib/domain/date";
 import { Cintura } from "@/components/Cintura";
+import { CRITERI, criterioValido, ordinaAtleti, versoPredefinito, type Verso } from "@/lib/domain/ordinamento";
 
 export const metadata: Metadata = { title: "Squadra" };
 
 const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ",");
 
-export default async function Squadra() {
+export default async function Squadra({ searchParams }: { searchParams: Promise<{ ordine?: string; verso?: string }> }) {
   const c = await contesto();
+  const sp = await searchParams;
+  const criterio = criterioValido(sp.ordine) ? sp.ordine : "nome";
+  const verso: Verso = sp.verso === "asc" || sp.verso === "desc" ? sp.verso : versoPredefinito(criterio);
   // tutte le letture partono insieme
   const [atleti, misure, incontri, valutazioni] = await Promise.all([
     elencoAtleti(c.dojo.id),
@@ -21,6 +25,7 @@ export default async function Squadra() {
     elencoIncontri(c.dojo.id),
     valutazioniDelDojo(c.dojo.id).catch(() => []),
   ]);
+  const ordinati = ordinaAtleti(atleti, criterio, verso);
 
   return (
     <>
@@ -37,6 +42,20 @@ export default async function Squadra() {
         </div></div>
       ) : (
         <>
+          <nav className="bar" aria-label="Ordina atleti">
+            <span className="hint">Ordina per</span>
+            {CRITERI.map((k) => {
+              const attivo = k.chiave === criterio;
+              const prossimo: Verso = attivo ? (verso === "asc" ? "desc" : "asc") : versoPredefinito(k.chiave);
+              return (
+                <Link key={k.chiave} href={`/squadra?ordine=${k.chiave}&verso=${prossimo}`} scroll={false} replace
+                  className="opt" aria-current={attivo ? "true" : undefined} style={{ textDecoration: "none" }}
+                  title={attivo ? "Tocca di nuovo per invertire" : undefined}>
+                  {k.nome}{attivo && (verso === "asc" ? " ↑" : " ↓")}
+                </Link>
+              );
+            })}
+          </nav>
           <div className="list tbl">
             <table>
               <thead>
@@ -46,7 +65,7 @@ export default async function Squadra() {
                 </tr>
               </thead>
               <tbody>
-                {atleti.map((a) => {
+                {ordinati.map((a) => {
                   const mie = misure.filter((m) => m.atleta_id === a.id);
                   const peso = ultimaVariazione(mie, "peso");
                   const ultima = mie.at(-1);

@@ -102,7 +102,7 @@ td a:hover { text-decoration: underline; }
 .stat small { font-family: var(--mono); font-size: 0.75rem; }
 .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .opt { font: 600 0.82rem var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
-.opt[aria-pressed="true"] { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+.opt[aria-pressed="true"], .opt[aria-current="true"] { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
 .chart svg { width: 100%; height: auto; display: block; }
 .due { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .bars { display: flex; flex-direction: column; gap: 7px; }
