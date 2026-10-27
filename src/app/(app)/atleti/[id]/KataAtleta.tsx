@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { GRUPPI_KATA, KATA, nomeKata, ordinaKata } from "@/lib/domain/kata";
-import { dataIt, etichettaMese } from "@/lib/domain/date";
+import { etichettaMese } from "@/lib/domain/date";
 import type { KataConosciuto } from "@/lib/domain/tipi";
 import { salvaKataConosciuti } from "./kata";
 
@@ -22,7 +22,6 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
   const [scelti, setScelti] = useState<Map<string, string | null>>(new Map(conosciuti.map((k) => [k.kata, k.dal])));
   const [errore, setErrore] = useState<string | null>(null);
   const [attesa, avvia] = useTransition();
-  const dal = new Map(conosciuti.map((k) => [k.kata, k.dal]));
   const elenco = ordinaKata(conosciuti.map((k) => k.kata));
 
   const cambia = (k: string) => setScelti((m) => { const n = new Map(m); if (n.has(k)) n.delete(k); else n.set(k, null); return n; });
@@ -47,7 +46,7 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
 
       {modifica ? (
         <div className="stack">
-          <p className="hint">Tocca i kata che l&apos;atleta conosce. La data in cui l&apos;ha imparato è facoltativa.</p>
+          <p className="hint">Tocca i kata che l&apos;atleta conosce.</p>
           {GRUPPI_KATA.map((g) => (
             <div className="stack-s" key={g}>
               <h3>{g}</h3>
@@ -58,19 +57,6 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
               </div>
             </div>
           ))}
-          {scelti.size > 0 && (
-            <div className="stack-s">
-              <h3>Imparato il (facoltativo)</h3>
-              <div className="griglia" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
-                {ordinaKata([...scelti.keys()]).map((k) => (
-                  <label className="campo" key={k}>{nomeKata(k)}
-                    <input id={`dal-${k}`} type="date" value={scelti.get(k) ?? ""}
-                      onChange={(e) => setScelti((m) => new Map(m).set(k, e.target.value || null))} />
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
           {errore && <p className="errore" role="alert">{errore}</p>}
           <div className="bar">
             <button type="button" className="btn" onClick={() => { setModifica(false); setScelti(new Map(conosciuti.map((k) => [k.kata, k.dal]))); }}>Annulla</button>
@@ -89,11 +75,12 @@ export function KataAtleta({ atletaId, conosciuti, storici, staff }: Props) {
               <div className="bar" key={k} style={{ padding: "10px 14px", borderTop: "1px solid var(--line)" }}>
                 <span className="grow" style={{ minWidth: 140 }}>
                   <b>{nomeKata(k)}</b>
-                  <br />
-                  <span className="hint">
-                    {dal.get(k) ? `Imparato il ${dataIt(dal.get(k)!)}` : "Data non indicata"}
-                    {s.length > 1 && ` · voti: ${s.slice(-4).map((x) => fmt(x.voto)).join(" → ")}`}
-                  </span>
+                  {s.length > 1 && (
+                    <>
+                      <br />
+                      <span className="hint">Voti: {s.slice(-4).map((x) => fmt(x.voto)).join(" → ")}</span>
+                    </>
+                  )}
                 </span>
                 <span className="num" style={{ textAlign: "right" }}>
                   {ultimo ? (
