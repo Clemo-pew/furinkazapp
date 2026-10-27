@@ -3,10 +3,9 @@ import type { Valutazione } from "./tipi";
 // Kata dello stile Shotokan, nell'ordine in cui di solito si imparano.
 // La chiave è salvata nel database (kata_conosciuti.kata e valutazioni.kata):
 // per aggiungere un kata basta una riga qui; non rinominare le chiavi già usate.
-export const GRUPPI_KATA = ["Base", "Heian", "Tekki", "Superiori"] as const;
+export const GRUPPI_KATA = ["Heian", "Tekki", "Superiori"] as const;
 
 export const KATA = [
-  { chiave: "taikyoku_shodan", nome: "Taikyoku Shodan", gruppo: "Base" },
   { chiave: "heian_shodan", nome: "Heian Shodan", gruppo: "Heian" },
   { chiave: "heian_nidan", nome: "Heian Nidan", gruppo: "Heian" },
   { chiave: "heian_sandan", nome: "Heian Sandan", gruppo: "Heian" },

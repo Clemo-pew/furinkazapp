@@ -8,7 +8,7 @@ describe("kata", () => {
     for (const k of chiavi) expect(k).toMatch(/^[a-z0-9_]{2,40}$/);
   });
   it("ordina per ordine di apprendimento", () => {
-    expect(ordinaKata(["bassai_dai", "heian_nidan", "taikyoku_shodan"])).toEqual(["taikyoku_shodan", "heian_nidan", "bassai_dai"]);
+    expect(ordinaKata(["bassai_dai", "heian_nidan", "tekki_shodan", "heian_shodan"])).toEqual(["heian_shodan", "heian_nidan", "tekki_shodan", "bassai_dai"]);
   });
   it("media solo dei kata validi", () => {
     expect(mediaKata({ heian_shodan: 7, heian_nidan: 8, inventato: 1 })).toBe(7.5);
