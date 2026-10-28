@@ -6,8 +6,8 @@ import type { Ruolo } from "./tipi";
 export const RUOLI: { chiave: Ruolo; nome: string; descrizione: string }[] = [
   { chiave: "admin", nome: "Amministratore", descrizione: "Gestisce tutto, crea gli accessi e cambia i ruoli." },
   { chiave: "istruttore", nome: "Istruttore", descrizione: "Inserisce e modifica atleti, misure, valutazioni, incontri e diario." },
-  { chiave: "atleta_plus", nome: "Allievo+", descrizione: "Vede tutta la squadra, comprese le valutazioni. Non modifica nulla." },
-  { chiave: "atleta", nome: "Allievo", descrizione: "Vede la squadra, gli incontri e il diario, ma nessun voto. Non modifica nulla." },
+  { chiave: "atleta_plus", nome: "Allievo+", descrizione: "Vede tutta la squadra, comprese le valutazioni. Inserisce solo le proprie misure." },
+  { chiave: "atleta", nome: "Allievo", descrizione: "Vede la squadra, gli incontri e il diario, ma nessun voto. Inserisce solo le proprie misure." },
 ];
 
 export const nomeRuolo = (r: Ruolo) => RUOLI.find((x) => x.chiave === r)?.nome ?? r;

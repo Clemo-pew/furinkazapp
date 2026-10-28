@@ -154,10 +154,10 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
       <section className="card">
         <div className="testata">
           <h3>Fisico{ultima && ` · ultima rilevazione ${etichettaMese(ultima.mese)}`}</h3>
-          {c.staff && <Link className="btn small" href="/misure">Inserisci misure</Link>}
+          {(c.staff || c.atletaId === id) && <Link className="btn small" href="/misure">{c.staff ? "Inserisci misure" : "Inserisci le tue misure"}</Link>}
         </div>
         {!misure.length ? (
-          <p className="hint">Nessuna misura ancora.{c.staff && " Inseriscile dalla sezione Misure."}</p>
+          <p className="hint">Nessuna misura ancora.{(c.staff || c.atletaId === id) && " Inseriscile dalla sezione Misure."}</p>
         ) : (
           <>
             <div className="stats">

@@ -1,15 +1,17 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { contestoStaff } from "@/lib/data/contesto";
+import { contesto, contestoStaff } from "@/lib/data/contesto";
 import { supabaseServer } from "@/lib/supabase/server";
 import { MISURE } from "@/lib/domain/misure";
 import { primoDelMese } from "@/lib/domain/date";
 
 export type Esito = { errore?: string; ok?: boolean } | undefined;
 
+/** Salva le misure di un mese. Lo staff per chiunque; un allievo solo per la propria scheda. */
 export async function salvaMisure(_: Esito, form: FormData): Promise<Esito> {
-  const c = await contestoStaff();
+  const c = await contesto();
   const atleta_id = String(form.get("atleta_id"));
+  if (!c.staff && atleta_id !== c.atletaId) return { errore: "Puoi inserire solo le tue misure." };
   const mese = String(form.get("mese"));
   if (!/^\d{4}-\d{2}$/.test(mese)) return { errore: "Mese non valido." };
 
@@ -27,7 +29,11 @@ export async function salvaMisure(_: Esito, form: FormData): Promise<Esito> {
   const { error } = await supabase
     .from("misure")
     .upsert({ dojo_id: c.dojo.id, atleta_id, mese: primoDelMese(mese), valori }, { onConflict: "atleta_id,mese" });
-  if (error) return { errore: error.message };
+  if (error) {
+    if (/row-level security/i.test(error.message))
+      return { errore: c.staff ? error.message : "Per inserire le tue misure serve un aggiornamento del database: avvisa l'allenatore (migrazione 0008)." };
+    return { errore: error.message };
+  }
 
   revalidatePath("/misure");
   revalidatePath(`/atleti/${atleta_id}`);

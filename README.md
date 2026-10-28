@@ -6,8 +6,8 @@ analisi degli incontri di kumite (dove ogni atleta subisce più punti, con quale
 - **Amministratore**: gestisce tutto, crea gli accessi degli atleti e cambia i ruoli (Impostazioni).
 - **Istruttori**: inseriscono e modificano atleti, misure, valutazioni e incontri.
 - **Allievo+**: entra con le credenziali date dall'allenatore e vede tutta la squadra
-  (schede, misure, valutazioni, kata, incontri, diario), senza poter modificare nulla.
-- **Allievo**: come Allievo+, ma non vede nessun voto (né i propri né quelli degli altri).
+  (schede, misure, valutazioni, kata, incontri, diario). Può inserire solo le proprie misure mensili.
+- **Allievo**: come Allievo+ (comprese le proprie misure), ma non vede nessun voto, né i propri né quelli degli altri.
 
 Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel.com)) e
 [Supabase](https://supabase.com) (database e accesso con email e password).
@@ -21,7 +21,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, `0008_misure_allievi.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
