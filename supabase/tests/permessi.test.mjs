@@ -147,6 +147,15 @@ ok((await as("A", `delete from misure where atleta_id=$1 returning id`, [a1])).r
 await throws(() => as("A", `insert into valutazioni (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-07-01','{"tecnica":10}')`, [dojo, a1]), "l'allievo continua a non poter scrivere valutazioni");
 await throws(() => as("X", `insert into misure (dojo_id, atleta_id, mese, valori) values ($1,$2,'2026-06-01','{}')`, [dojo, a1]), "un estraneo non inserisce misure");
 
+// certificato medico
+ok((await as("I", `insert into certificati_medici (atleta_id, dojo_id, tipo, scadenza) values ($1,$3,'agonistico','2027-03-31'), ($2,$3,'non_agonistico','2026-12-15') returning atleta_id`, [a1, a2, dojo])).rows.length === 2, "l'istruttore inserisce i certificati");
+await throws(() => as("I", `insert into certificati_medici (atleta_id, dojo_id, tipo, scadenza) values ($1,$2,'sportivo','2027-01-01') on conflict (atleta_id) do update set tipo=excluded.tipo`, [a1, dojo]), "il tipo di certificato è controllato");
+ok((await as("A", `select atleta_id from certificati_medici`)).rows.map((r) => r.atleta_id).join() === a1, "l'allievo vede solo il proprio certificato");
+ok((await as("A", `update certificati_medici set scadenza='2030-01-01' where atleta_id=$1 returning atleta_id`, [a1])).rows.length === 0, "l'allievo non modifica il proprio certificato");
+await throws(() => as("A", `insert into certificati_medici (atleta_id, dojo_id, tipo, scadenza) values ($1,$2,'agonistico','2030-01-01')`, [a2, dojo]), "l'allievo non inserisce certificati");
+ok((await as("C", `select count(*)::int n from certificati_medici`)).rows[0].n === 2, "l'amministratore vede tutti i certificati");
+ok((await as("X", `select count(*)::int n from certificati_medici where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i certificati");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);

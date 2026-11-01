@@ -52,6 +52,13 @@ export interface KataConosciuto {
   dal: string | null;
 }
 
+/** Certificato medico sportivo di un atleta (visibile solo allo staff e all'atleta). */
+export interface CertificatoMedico {
+  atleta_id: string;
+  tipo: "agonistico" | "non_agonistico";
+  scadenza: string;
+}
+
 /** Una seduta del diario allenamenti. `presenti` sono gli id degli atleti presenti. */
 export interface Allenamento {
   id: string;

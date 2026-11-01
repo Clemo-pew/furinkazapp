@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
-import { elencoAllenamenti, elencoIncontri, kataConosciuti, leggiAtleta, misureDi, valutazioniDi } from "@/lib/data/query";
+import { elencoAllenamenti, elencoIncontri, kataConosciuti, leggiAtleta, misureDi, valutazioniDi, certificatiMedici } from "@/lib/data/query";
+import { Certificato } from "@/components/Certificato";
 import { storicoKata } from "@/lib/domain/kata";
 import { KataAtleta } from "./KataAtleta";
 import { presenzeAtleta } from "@/lib/domain/diario";
@@ -33,7 +34,8 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
   const c = await contesto();
   // I permessi del database impediscono già a un atleta di leggere schede altrui.
   // tutte le letture partono insieme
-  const [atleta, misure, incontri, valutazioni, accesso, allenamenti, kata] = await Promise.all([
+  const vedeCertificato = c.staff || c.atletaId === id; // dato sanitario: solo staff e l'atleta stesso
+  const [atleta, misure, incontri, valutazioni, accesso, allenamenti, kata, certificati] = await Promise.all([
     leggiAtleta(id),
     misureDi([id]),
     elencoIncontri(c.dojo.id, id),
@@ -41,6 +43,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
     c.ruolo === "admin" ? statoAccesso(c.dojo.id, id) : Promise.resolve(null),
     elencoAllenamenti(c.dojo.id).catch(() => []), // diario non ancora creato
     kataConosciuti(c.dojo.id, id),
+    vedeCertificato ? certificatiMedici(c.dojo.id, id) : Promise.resolve([]),
   ]);
   if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
   const pres = presenzeAtleta(id, allenamenti, oggi());
@@ -68,6 +71,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
               <span>Presenze: {pres.recenti}/{pres.recentiSvolti} negli ultimi 30 giorni · {pres.totale} in totale</span>
             )}
           </div>
+          {vedeCertificato && <div><Certificato certificato={certificati[0]} oggi={oggi()} /></div>}
         </div>
         {c.staff && <Link className="btn small" href={`/atleti/${id}/modifica`}>Modifica dati</Link>}
       </div>

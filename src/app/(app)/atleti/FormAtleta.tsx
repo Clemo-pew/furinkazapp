@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { CINTURE } from "@/lib/domain/cinture";
-import type { Atleta } from "@/lib/domain/tipi";
+import type { Atleta, CertificatoMedico } from "@/lib/domain/tipi";
+import { TIPI_CERTIFICATO } from "@/lib/domain/certificato";
 import { eliminaAtleta, salvaAtleta } from "./azioni";
 
-export function FormAtleta({ atleta }: { atleta?: Atleta }) {
+export function FormAtleta({ atleta, certificato }: { atleta?: Atleta; certificato?: CertificatoMedico }) {
   const [stato, azione, attesa] = useActionState(salvaAtleta, undefined);
   const [conferma, setConferma] = useState(false);
   const [eliminando, avvia] = useTransition();
@@ -24,6 +25,17 @@ export function FormAtleta({ atleta }: { atleta?: Atleta }) {
             {CINTURE.map((c, i) => <option key={c.nome} value={i}>{c.nome}</option>)}
           </select>
         </label>
+        <fieldset className="tutta griglia" style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 12, margin: 0 }}>
+          <legend className="campo" style={{ padding: "0 6px" }}>Certificato medico</legend>
+          <label className="campo">Tipo
+            <select id="cert_tipo" name="cert_tipo" defaultValue={certificato?.tipo ?? ""}>
+              <option value="">Non inserito</option>
+              {TIPI_CERTIFICATO.map((t) => <option key={t.chiave} value={t.chiave}>{t.nome}</option>)}
+            </select>
+          </label>
+          <label className="campo">Scade il<input id="cert_scadenza" name="cert_scadenza" type="date" defaultValue={certificato?.scadenza ?? ""} /></label>
+          <p className="hint tutta">Lo vedono solo lo staff e l&apos;atleta stesso.</p>
+        </fieldset>
         <label className="campo tutta">Note<textarea id="note" name="note" rows={3} defaultValue={atleta?.note ?? ""} placeholder="Infortuni, obiettivi, categoria di gara…" /></label>
         {atleta && (
           <label className="bar tutta" style={{ fontSize: ".9rem" }}>

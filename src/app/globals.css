@@ -172,3 +172,10 @@ details.bout summary::-webkit-details-marker { display: none; }
 .video-link { align-self: flex-end; text-decoration: none; }
 .video-vuoto { aspect-ratio: 16 / 9; border: 1px dashed var(--line); border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 12px; }
 .badge-conosci { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--good); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; }
+
+/* certificato medico */
+.cert { display: inline-flex; align-items: center; gap: 4px; font-family: var(--body); font-size: 0.8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; }
+.cert-ok { color: var(--good); }
+.cert-avviso { color: var(--warn); }
+.cert-scaduto { color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.cert-mancante { color: var(--muted); border-style: dashed; }

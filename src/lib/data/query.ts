@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Allenamento, Atleta, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
+import type { Allenamento, Atleta, CertificatoMedico, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -124,4 +124,17 @@ export async function videoKataDelDojo(dojoId: string): Promise<Record<string, s
   const { data, error } = await supabase.from("kata_video").select("kata, youtube_id").eq("dojo_id", dojoId);
   if (error || !data) return {};
   return Object.fromEntries(data.map((r) => [r.kata as string, r.youtube_id as string]));
+}
+
+/**
+ * Certificati medici visibili all'utente: tutti per lo staff, solo il proprio per un allievo
+ * (lo decidono i permessi del database). Vuoto se la tabella non esiste ancora.
+ */
+export async function certificatiMedici(dojoId: string, atletaId?: string): Promise<CertificatoMedico[]> {
+  const supabase = await supabaseServer();
+  let q = supabase.from("certificati_medici").select("atleta_id, tipo, scadenza").eq("dojo_id", dojoId);
+  if (atletaId) q = q.eq("atleta_id", atletaId);
+  const { data, error } = await q;
+  if (error) return [];
+  return data as CertificatoMedico[];
 }

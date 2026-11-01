@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contesto } from "@/lib/data/contesto";
-import { elencoAtleti, elencoIncontri, misureDelDojo, valutazioniDelDojo } from "@/lib/data/query";
+import { certificatiMedici, elencoAtleti, elencoIncontri, misureDelDojo, valutazioniDelDojo } from "@/lib/data/query";
+import { Certificato } from "@/components/Certificato";
+import { statoCertificato } from "@/lib/domain/certificato";
+import { oggi } from "@/lib/domain/date";
 import { media, ultimeDue } from "@/lib/domain/valutazioni";
 import { ultimaVariazione } from "@/lib/domain/misure";
 import { debolezzaPrincipale, statisticheKumite } from "@/lib/domain/analisi";
@@ -19,12 +22,19 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
   const criterio = criterioValido(sp.ordine) ? sp.ordine : "nome";
   const verso: Verso = sp.verso === "asc" || sp.verso === "desc" ? sp.verso : versoPredefinito(criterio);
   // tutte le letture partono insieme
-  const [atleti, misure, incontri, valutazioni] = await Promise.all([
+  const [atleti, misure, incontri, valutazioni, certificati] = await Promise.all([
     elencoAtleti(c.dojo.id),
     misureDelDojo(c.dojo.id),
     elencoIncontri(c.dojo.id),
     c.vedeValutazioni ? valutazioniDelDojo(c.dojo.id).catch(() => []) : Promise.resolve([]),
+    c.staff ? certificatiMedici(c.dojo.id) : Promise.resolve([]),
   ]);
+  const oggiStr = oggi();
+  const certPer = new Map(certificati.map((x) => [x.atleta_id, x]));
+  const statiCert = atleti.map((a) => statoCertificato(certPer.get(a.id)?.scadenza, oggiStr));
+  const nScaduti = statiCert.filter((s) => s === "scaduto").length;
+  const nInScadenza = statiCert.filter((s) => s === "in_scadenza").length;
+  const nMancanti = statiCert.filter((s) => s === "mancante").length;
   const ordinati = ordinaAtleti(atleti, criterio, verso);
 
   return (
@@ -42,6 +52,14 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
         </div></div>
       ) : (
         <>
+          {c.staff && (nScaduti > 0 || nInScadenza > 0 || nMancanti > 0) && (
+            <div className="card" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "10px 14px" }}>
+              <b>Certificati medici</b>
+              {nScaduti > 0 && <span className="cert cert-scaduto">{nScaduti} scadut{nScaduti === 1 ? "o" : "i"}</span>}
+              {nInScadenza > 0 && <span className="cert cert-avviso">{nInScadenza} in scadenza entro 30 giorni</span>}
+              {nMancanti > 0 && <span className="cert cert-mancante">{nMancanti} non inserit{nMancanti === 1 ? "o" : "i"}</span>}
+            </div>
+          )}
           <nav className="bar" aria-label="Ordina atleti">
             <span className="hint">Ordina per</span>
             {CRITERI.map((k) => {
@@ -79,6 +97,7 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
                       <td>
                         <Link href={`/atleti/${a.id}`}>{a.nome}</Link>
                         <div className="meta"><Cintura grado={a.cintura} />{a.anno_nascita && <span>{eta(a.anno_nascita)} anni</span>}</div>
+                        {c.staff && <Certificato certificato={certPer.get(a.id)} oggi={oggiStr} compatto />}
                       </td>
                       {c.vedeValutazioni && <td className="r num">
                         {mediaVal != null ? fmt(mediaVal) : "—"}
