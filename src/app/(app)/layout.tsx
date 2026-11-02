@@ -3,6 +3,8 @@ import { contesto } from "@/lib/data/contesto";
 import { MENU } from "@/lib/navigazione";
 import { Menu } from "@/components/Menu";
 import { Logo } from "@/components/Logo";
+import { MenuMobile } from "@/components/MenuMobile";
+import { nomeRuolo } from "@/lib/domain/ruoli";
 
 // Struttura comune a tutte le pagine dopo l'accesso.
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
@@ -19,12 +21,13 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         <div className="wrap">
           <div className="top">
             <Link href="/" style={{ textDecoration: "none" }} aria-label="FurinkazApp, pagina iniziale"><Logo altezza={30} /></Link>
-            <div className="bar" style={{ flexWrap: "nowrap", minWidth: 0 }}>
+            <div className="bar solo-largo" style={{ flexWrap: "nowrap", minWidth: 0 }}>
               <span className="chip" title={c.dojo.nome}>{c.dojo.nome}</span>
               <form action="/auth/esci" method="post"><button className="linkbtn">Esci</button></form>
             </div>
+            <MenuMobile voci={voci} dojo={c.dojo.nome} ruolo={nomeRuolo(c.ruolo)} />
           </div>
-          <Menu voci={voci} />
+          <div className="solo-largo"><Menu voci={voci} /></div>
         </div>
       </header>
       <main className="wrap stack">{children}</main>
