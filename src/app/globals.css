@@ -214,3 +214,25 @@ details.bout summary::-webkit-details-marker { display: none; }
 .menu-voci a:active { background: var(--soft); }
 .menu-voci a[aria-current="page"] { background: var(--soft); border-left-color: var(--brand); color: var(--brand); }
 .menu-esci { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* diario: mesi e allenamenti richiudibili */
+.diario-mese { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.diario-mese > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 14px 16px; }
+.diario-mese > summary::-webkit-details-marker, .diario-voce > summary::-webkit-details-marker { display: none; }
+.diario-mese-nome { font-family: var(--display); font-size: 1.1rem; text-transform: capitalize; }
+.diario-mese-nome::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--brand); font-family: var(--body); }
+.diario-mese[open] .diario-mese-nome::before { transform: rotate(90deg); }
+.diario-settimane { display: flex; flex-direction: column; gap: 14px; padding: 0 12px 14px; }
+.diario-voce { border-top: 1px solid var(--line); }
+.diario-voce:first-child { border-top: 0; }
+.diario-voce > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 7.5rem 1fr auto; gap: 10px; align-items: baseline; padding: 12px 14px; }
+.diario-voce[open] > summary { background: var(--soft); }
+.diario-giorno { font-weight: 700; text-transform: capitalize; white-space: nowrap; }
+.diario-titolo { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diario-voce[open] .diario-titolo { white-space: normal; }
+.diario-durata { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.diario-dettaglio { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 480px) {
+  .diario-voce > summary { grid-template-columns: 1fr auto; }
+  .diario-titolo { grid-column: 1 / -1; grid-row: 2; }
+}

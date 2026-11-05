@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { contesto } from "@/lib/data/contesto";
 import { elencoAllenamenti, elencoAtleti } from "@/lib/data/query";
-import { formatoDurata, giornoSettimana, nomeArgomento, perMese } from "@/lib/domain/diario";
-import { meseCorrente, meseEsteso } from "@/lib/domain/date";
+import { formatoDurata } from "@/lib/domain/diario";
+import { ElencoDiario } from "./ElencoDiario";
+import { meseCorrente } from "@/lib/domain/date";
 import type { Allenamento } from "@/lib/domain/tipi";
 
 export const metadata: Metadata = { title: "Diario allenamenti" };
@@ -55,37 +56,7 @@ export default async function Diario() {
             <div className="stat"><span>Presenza media</span><b>{presenzaMedia != null ? `${presenzaMedia}%` : "—"}</b><small>degli atleti attivi</small></div>
           </div>
 
-          {perMese(allenamenti).map(([mese, lista]) => (
-            <section className="stack-s" key={mese}>
-              <h3 style={{ textTransform: "none", fontSize: ".95rem", letterSpacing: 0 }}>
-                <span style={{ textTransform: "capitalize" }}>{meseEsteso(mese)}</span> · {lista.length} {lista.length === 1 ? "allenamento" : "allenamenti"}
-              </h3>
-              {lista.map((a) => (
-                <article className="card" key={a.id}>
-                  <div className="testata">
-                    <div className="stack-s" style={{ gap: 2 }}>
-                      <b style={{ textTransform: "capitalize" }}>{giornoSettimana(a.data)}</b>
-                      {a.titolo && <span>{a.titolo}</span>}
-                    </div>
-                    <div className="bar">
-                      {formatoDurata(a.durata_min) && <span className="chip">{formatoDurata(a.durata_min)}</span>}
-                      {c.staff && <Link className="btn small" href={`/diario/${a.id}`}>Modifica</Link>}
-                    </div>
-                  </div>
-                  {!!a.argomenti.length && (
-                    <div className="seg">{a.argomenti.map((k) => <span key={k} className="tag-argomento">{nomeArgomento(k)}</span>)}</div>
-                  )}
-                  {a.descrizione && <p className="descrizione">{a.descrizione}</p>}
-                  <details>
-                    <summary className="hint" style={{ cursor: "pointer" }}>Presenti: {a.presenti.length}</summary>
-                    <p className="hint" style={{ marginTop: 6 }}>
-                      {a.presenti.length ? a.presenti.map((id) => nome.get(id) ?? "Atleta eliminato").sort().join(", ") : "Nessuna presenza segnata."}
-                    </p>
-                  </details>
-                </article>
-              ))}
-            </section>
-          ))}
+          <ElencoDiario allenamenti={allenamenti} nomi={Object.fromEntries(nome)} staff={c.staff} meseCorrente={meseCorrente()} />
         </>
       )}
     </>

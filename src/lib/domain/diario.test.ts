@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatoDurata, giornoSettimana, perMese, presenzeAtleta } from "./diario";
+import { etichettaSettimana, formatoDurata, giornoSettimana, inizioSettimana, perMese, perSettimana, presenzeAtleta, titoloBreve } from "./diario";
 import type { Allenamento } from "./tipi";
 
 const all = (id: string, data: string, presenti: string[]): Allenamento =>
@@ -22,5 +22,30 @@ describe("diario allenamenti", () => {
   it("raggruppa per mese", () => {
     const g = perMese([all("1", "2026-10-26", []), all("2", "2026-10-02", []), all("3", "2026-09-30", [])]);
     expect(g.map(([m, l]) => [m, l.length])).toEqual([["2026-10", 2], ["2026-09", 1]]);
+  });
+});
+
+
+describe("settimane del diario", () => {
+  it("trova il lunedì della settimana", () => {
+    expect(inizioSettimana("2026-11-05")).toBe("2026-11-02"); // giovedì
+    expect(inizioSettimana("2026-11-08")).toBe("2026-11-02"); // domenica
+    expect(inizioSettimana("2026-11-02")).toBe("2026-11-02"); // lunedì
+    expect(inizioSettimana("2026-11-01")).toBe("2026-10-26"); // domenica del mese prima
+  });
+  it("scrive l'intervallo della settimana", () => {
+    expect(etichettaSettimana("2026-11-02")).toBe("2–8 nov");
+    expect(etichettaSettimana("2026-10-26")).toBe("26 ott – 1 nov");
+    expect(etichettaSettimana("2026-12-28")).toBe("28 dic – 3 gen");
+  });
+  it("raggruppa per settimana", () => {
+    const g = perSettimana([all("1", "2026-11-05", []), all("2", "2026-11-03", []), all("3", "2026-10-29", [])]);
+    expect(g.map(([s, l]) => [s, l.length])).toEqual([["2026-11-02", 2], ["2026-10-26", 1]]);
+  });
+  it("titolo breve", () => {
+    expect(titoloBreve({ ...all("1", "2026-11-05", []), titolo: "Uscite laterali" })).toBe("Uscite laterali");
+    expect(titoloBreve({ ...all("1", "2026-11-05", []), argomenti: ["kihon", "kumite"] })).toBe("Kihon · Kumite");
+    expect(titoloBreve({ ...all("1", "2026-11-05", []), descrizione: "\nRiscaldamento e kihon\naltro" })).toBe("Riscaldamento e kihon");
+    expect(titoloBreve(all("1", "2026-11-05", []))).toBe("Allenamento");
   });
 });
