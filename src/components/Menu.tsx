@@ -7,7 +7,7 @@ export function Menu({ voci }: { voci: { href: string; etichetta: string }[] }) 
   return (
     <nav className="nav" aria-label="Sezioni">
       {voci.map((v) => (
-        <Link key={v.href} href={v.href} aria-current={path === v.href || path.startsWith(v.href + "/") ? "page" : undefined}>
+        <Link key={v.href} href={v.href} aria-current={path === v.href || (v.href !== "/" && path.startsWith(v.href + "/")) ? "page" : undefined}>
           {v.etichetta}
         </Link>
       ))}

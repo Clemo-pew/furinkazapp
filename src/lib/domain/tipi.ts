@@ -59,6 +59,20 @@ export interface CertificatoMedico {
   scadenza: string;
 }
 
+/** Un evento del calendario (gara, stage, esame…). Tipi in domain/eventi.ts. */
+export interface Evento {
+  id: string;
+  titolo: string;
+  tipo: string;
+  data_inizio: string;
+  data_fine: string | null;
+  /** "HH:MM" */
+  ora: string | null;
+  luogo: string | null;
+  descrizione: string | null;
+  link: string | null;
+}
+
 /** Una seduta del diario allenamenti. `presenti` sono gli id degli atleti presenti. */
 export interface Allenamento {
   id: string;

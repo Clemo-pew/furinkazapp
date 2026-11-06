@@ -11,6 +11,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const c = await contesto();
   // Chi ha una scheda atleta (anche se istruttore) ha la voce "Il mio profilo".
   const voci = [
+    { href: "/", etichetta: "Home" },
     ...(c.atletaId ? [{ href: `/atleti/${c.atletaId}`, etichetta: "Il mio profilo" }] : []),
     ...MENU.filter((v) => v.ruoli.includes(c.ruolo)),
   ];

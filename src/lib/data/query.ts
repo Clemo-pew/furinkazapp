@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Allenamento, Atleta, CertificatoMedico, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
+import type { Allenamento, Atleta, CertificatoMedico, Evento, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -137,4 +137,26 @@ export async function certificatiMedici(dojoId: string, atletaId?: string): Prom
   const { data, error } = await q;
   if (error) return [];
   return data as CertificatoMedico[];
+}
+
+const CAMPI_EVENTO = "id, titolo, tipo, data_inizio, data_fine, ora, luogo, descrizione, link";
+
+/**
+ * Eventi del dojo che toccano l'intervallo [da, a] (date AAAA-MM-GG), in ordine di data.
+ * Senza intervallo: tutti. `null` se la tabella non esiste ancora (migrazione 0010).
+ */
+export async function elencoEventi(dojoId: string, da?: string, a?: string): Promise<Evento[] | null> {
+  const supabase = await supabaseServer();
+  let q = supabase.from("eventi").select(CAMPI_EVENTO).eq("dojo_id", dojoId);
+  if (a) q = q.lte("data_inizio", a);
+  if (da) q = q.or(`data_fine.gte.${da},and(data_fine.is.null,data_inizio.gte.${da})`);
+  const { data, error } = await q.order("data_inizio").order("ora", { nullsFirst: true });
+  if (error) return null;
+  return data as Evento[];
+}
+
+export async function leggiEvento(id: string): Promise<(Evento & { dojo_id: string }) | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("eventi").select(`dojo_id, ${CAMPI_EVENTO}`).eq("id", id).maybeSingle();
+  return (data as (Evento & { dojo_id: string }) | null) ?? null;
 }

@@ -156,6 +156,18 @@ await throws(() => as("A", `insert into certificati_medici (atleta_id, dojo_id, 
 ok((await as("C", `select count(*)::int n from certificati_medici`)).rows[0].n === 2, "l'amministratore vede tutti i certificati");
 ok((await as("X", `select count(*)::int n from certificati_medici where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i certificati");
 
+// eventi
+const ev = (await as("I", `insert into eventi (dojo_id, titolo, tipo, data_inizio, data_fine, ora, luogo, link) values ($1,'Campionato regionale','gara','2026-11-15','2026-11-16','09:30','PalaUnipa','https://fijlkam.it') returning id`, [dojo])).rows[0]?.id;
+ok(!!ev, "l'istruttore crea un evento");
+await throws(() => as("I", `insert into eventi (dojo_id, titolo, data_inizio, data_fine) values ($1,'x','2026-11-15','2026-11-10')`, [dojo]), "la fine non può precedere l'inizio");
+await throws(() => as("I", `insert into eventi (dojo_id, titolo, data_inizio, ora) values ($1,'x','2026-11-15','25:00')`, [dojo]), "l'ora è controllata");
+await throws(() => as("I", `insert into eventi (dojo_id, titolo, data_inizio, link) values ($1,'x','2026-11-15','javascript:alert(1)')`, [dojo]), "il link deve essere http/https");
+ok((await as("A", `select count(*)::int n from eventi`)).rows[0].n === 1, "l'allievo vede gli eventi");
+await throws(() => as("A", `insert into eventi (dojo_id, titolo, data_inizio) values ($1,'Festa','2026-12-20')`, [dojo]), "l'allievo non crea eventi");
+ok((await as("A", `update eventi set titolo='x' returning id`)).rows.length === 0, "l'allievo non modifica eventi");
+ok((await as("A", `delete from eventi returning id`)).rows.length === 0, "l'allievo non elimina eventi");
+ok((await as("X", `select count(*)::int n from eventi where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede gli eventi");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);

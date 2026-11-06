@@ -36,7 +36,7 @@ export function MenuMobile({ voci, dojo, ruolo }: Props) {
     };
   }, [aperto]);
 
-  const attiva = (href: string) => path === href || path.startsWith(href + "/");
+  const attiva = (href: string) => path === href || (href !== "/" && path.startsWith(href + "/"));
   const corrente = voci.find((v) => attiva(v.href))?.etichetta;
 
   return (

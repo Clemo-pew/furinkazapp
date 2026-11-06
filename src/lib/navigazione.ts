@@ -16,5 +16,6 @@ export const MENU: VoceMenu[] = [
   { href: "/kumite", etichetta: "Kumite", ruoli: ["admin", "istruttore", "atleta_plus", "atleta"] },
   { href: "/diario", etichetta: "Diario", ruoli: ["admin", "istruttore", "atleta_plus", "atleta"] },
   { href: "/kata", etichetta: "Kata", ruoli: ["admin", "istruttore", "atleta_plus", "atleta"] },
+  { href: "/eventi", etichetta: "Eventi", ruoli: ["admin", "istruttore", "atleta_plus", "atleta"] },
   { href: "/impostazioni", etichetta: "Impostazioni", ruoli: ["admin", "istruttore"] },
 ];

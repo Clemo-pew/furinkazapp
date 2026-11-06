@@ -21,7 +21,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, `0008_misure_allievi.sql`, `0009_certificati_medici.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, `0008_misure_allievi.sql`, `0009_certificati_medici.sql`, `0010_eventi.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
@@ -114,6 +114,7 @@ src/
       kumite/          elenco incontri e registrazione punto per punto
       diario/          diario degli allenamenti e presenze
       kata/            video di esecuzione dei kata
+      eventi/          calendario di gare, stage ed esami
       impostazioni/    nome società, inviti, persone con accesso
   components/          pezzi riusabili (grafico, mappa del corpo, barre, elenchi)
   lib/
@@ -159,6 +160,10 @@ Aggiungi una riga in `ARGOMENTI` dentro `src/lib/domain/diario.ts`.
 ### Un nuovo kata
 Aggiungi una riga in `KATA` dentro `src/lib/domain/kata.ts`, con chiave in minuscolo senza spazi
 (es. `{ chiave: "kanku_sho", nome: "Kanku Sho", gruppo: "Superiori" }`).
+
+### Un nuovo tipo di evento (es. trasferta)
+Aggiungi una riga in `TIPI_EVENTO` dentro `src/lib/domain/eventi.ts`, con nome e colore.
+Il preavviso dei promemoria nella home (14 giorni) è `PREAVVISO_EVENTO_GIORNI` nello stesso file.
 
 ### Una nuova tecnica di kumite
 Aggiungi una riga in `TECNICHE` dentro `src/lib/domain/kumite.ts`. Non rinominare le chiavi già usate:
