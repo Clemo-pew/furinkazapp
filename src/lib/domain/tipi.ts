@@ -59,6 +59,17 @@ export interface CertificatoMedico {
   scadenza: string;
 }
 
+/** Comunicazione in bacheca. */
+export interface Comunicazione {
+  id: string;
+  titolo: string;
+  testo: string;
+  in_evidenza: boolean;
+  scade_il: string | null;
+  autore_nome: string | null;
+  created_at: string;
+}
+
 /** Un evento del calendario (gara, stage, esame…). Tipi in domain/eventi.ts. */
 export interface Evento {
   id: string;

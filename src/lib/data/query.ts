@@ -1,6 +1,6 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Allenamento, Atleta, CertificatoMedico, Evento, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
+import type { Allenamento, Atleta, CertificatoMedico, Comunicazione, Evento, Incontro, KataConosciuto, Misura, Valutazione } from "@/lib/domain/tipi";
 
 // Tutte le letture dal database passano da qui: se cambia lo schema,
 // si aggiorna un solo file. I permessi (RLS) filtrano già cosa può vedere l'utente.
@@ -159,4 +159,20 @@ export async function leggiEvento(id: string): Promise<(Evento & { dojo_id: stri
   const supabase = await supabaseServer();
   const { data } = await supabase.from("eventi").select(`dojo_id, ${CAMPI_EVENTO}`).eq("id", id).maybeSingle();
   return (data as (Evento & { dojo_id: string }) | null) ?? null;
+}
+
+const CAMPI_COMUNICAZIONE = "id, titolo, testo, in_evidenza, scade_il, autore_nome, created_at";
+
+/** Comunicazioni della bacheca, dalla più recente. `null` se la tabella non esiste ancora (migrazione 0011). */
+export async function elencoComunicazioni(dojoId: string): Promise<Comunicazione[] | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("comunicazioni").select(CAMPI_COMUNICAZIONE).eq("dojo_id", dojoId).order("created_at", { ascending: false }).limit(200);
+  if (error) return null;
+  return data as Comunicazione[];
+}
+
+export async function leggiComunicazione(id: string): Promise<(Comunicazione & { dojo_id: string }) | null> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.from("comunicazioni").select(`dojo_id, ${CAMPI_COMUNICAZIONE}`).eq("id", id).maybeSingle();
+  return (data as (Comunicazione & { dojo_id: string }) | null) ?? null;
 }

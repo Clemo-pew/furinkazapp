@@ -281,3 +281,9 @@ a.cal-giorno:hover { outline: 1px solid var(--line); }
 .scorciatoia { display: flex; flex-direction: column; gap: 3px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; color: var(--ink); min-width: 0; }
 .scorciatoia:hover { border-color: var(--brand); }
 .scorciatoia b { font-size: 1rem; }
+
+/* bacheca */
+.comunicazione { gap: 8px; }
+.comunicazione.in-evidenza { border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 6%, var(--surface)); }
+.etichetta-evidenza { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold); }
+.comunicazione-titolo { font-size: 1.05rem; overflow-wrap: anywhere; }

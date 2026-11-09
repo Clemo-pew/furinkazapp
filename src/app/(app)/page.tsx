@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contesto } from "@/lib/data/contesto";
-import { certificatiMedici, elencoAtleti, elencoEventi } from "@/lib/data/query";
+import { certificatiMedici, elencoAtleti, elencoComunicazioni, elencoEventi } from "@/lib/data/query";
+import { perLaHome } from "@/lib/domain/bacheca";
+import { SchedaComunicazione } from "@/components/SchedaComunicazione";
 import { oggi } from "@/lib/domain/date";
 import { PREAVVISO_EVENTO_GIORNI, promemoria } from "@/lib/domain/eventi";
 import { statoCertificato } from "@/lib/domain/certificato";
@@ -12,6 +14,7 @@ import { Certificato } from "@/components/Certificato";
 export const metadata: Metadata = { title: "Home" };
 
 const DESCRIZIONI: Record<string, string> = {
+  "/bacheca": "Avvisi e comunicazioni del dojo",
   "/squadra": "Atleti, peso, risultati e punti deboli",
   "/misure": "Misure fisiche del mese",
   "/valutazioni": "Voti tecnici del mese",
@@ -25,11 +28,13 @@ const DESCRIZIONI: Record<string, string> = {
 export default async function Home() {
   const c = await contesto();
   const oggiStr = oggi();
-  const [eventi, certificati, atleti] = await Promise.all([
+  const [eventi, certificati, atleti, comunicazioni] = await Promise.all([
     elencoEventi(c.dojo.id, oggiStr),
     c.staff || c.atletaId ? certificatiMedici(c.dojo.id, c.staff ? undefined : c.atletaId!) : Promise.resolve([]),
     c.staff ? elencoAtleti(c.dojo.id) : Promise.resolve([]),
+    elencoComunicazioni(c.dojo.id),
   ]);
+  const inBacheca = perLaHome(comunicazioni ?? [], oggiStr);
   const vicini = promemoria(eventi ?? [], oggiStr);
 
   // certificati: lo staff vede il riepilogo della squadra, l'allievo il proprio se non è in regola
@@ -47,6 +52,16 @@ export default async function Home() {
   return (
     <>
       <h1>{c.nomeUtente ? `Ciao, ${c.nomeUtente.split(" ")[0]}` : "Benvenuto"}</h1>
+
+      {inBacheca.length > 0 && (
+        <section className="stack-s">
+          <div className="testata">
+            <h3>Bacheca</h3>
+            <Link className="btn small" href="/bacheca">Tutte le comunicazioni</Link>
+          </div>
+          {inBacheca.map((x) => <SchedaComunicazione key={x.id} c={x} staff={false} />)}
+        </section>
+      )}
 
       <section className="card promemoria">
         <div className="testata">

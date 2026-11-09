@@ -168,6 +168,15 @@ ok((await as("A", `update eventi set titolo='x' returning id`)).rows.length === 
 ok((await as("A", `delete from eventi returning id`)).rows.length === 0, "l'allievo non elimina eventi");
 ok((await as("X", `select count(*)::int n from eventi where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede gli eventi");
 
+// bacheca
+ok((await as("I", `insert into comunicazioni (dojo_id, titolo, testo, in_evidenza, scade_il) values ($1,'Palestra chiusa','Lunedì 1 dicembre la palestra resta chiusa.',true,'2026-12-02') returning id`, [dojo])).rows.length === 1, "l'istruttore pubblica una comunicazione");
+ok((await as("A", `select count(*)::int n from comunicazioni`)).rows[0].n === 1, "l'allievo legge la bacheca");
+await throws(() => as("A", `insert into comunicazioni (dojo_id, titolo) values ($1,'Ciao')`, [dojo]), "l'allievo non pubblica in bacheca");
+ok((await as("A", `update comunicazioni set in_evidenza=false returning id`)).rows.length === 0, "l'allievo non modifica le comunicazioni");
+ok((await as("A", `delete from comunicazioni returning id`)).rows.length === 0, "l'allievo non elimina le comunicazioni");
+await throws(() => as("I", `insert into comunicazioni (dojo_id, titolo) values ($1,'   ')`, [dojo]), "il titolo è obbligatorio");
+ok((await as("X", `select count(*)::int n from comunicazioni where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non legge la bacheca");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);
