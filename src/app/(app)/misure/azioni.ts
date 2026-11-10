@@ -12,6 +12,8 @@ export async function salvaMisure(_: Esito, form: FormData): Promise<Esito> {
   const c = await contesto();
   const atleta_id = String(form.get("atleta_id"));
   if (!c.staff && atleta_id !== c.atletaId) return { errore: "Puoi inserire solo le tue misure." };
+  if (!c.staff && !c.privacy?.consensoSalute)
+    return { errore: "Per inserire le tue misure serve il consenso al trattamento dei dati sulla salute: puoi darlo dalla pagina Privacy → «Le tue scelte»." };
   const mese = String(form.get("mese"));
   if (!/^\d{4}-\d{2}$/.test(mese)) return { errore: "Mese non valido." };
 

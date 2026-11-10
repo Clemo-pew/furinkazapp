@@ -296,3 +296,9 @@ main.wrap + .piede { display: flex; justify-content: space-between; gap: 12px; p
 .privacy p, .privacy li { line-height: 1.6; }
 .privacy ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .privacy h2 { font-size: 1.1rem; }
+
+/* accettazione privacy */
+.consenso-gruppo { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 0; }
+.consenso-scelta { display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; cursor: pointer; }
+.consenso-scelta input { width: 20px; height: 20px; flex: none; margin-top: 2px; accent-color: var(--brand); }
+.consenso-obbligatorio { padding: 12px; border-radius: 10px; background: var(--soft); }

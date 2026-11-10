@@ -21,7 +21,7 @@ Tecnologie: [Next.js](https://nextjs.org) (pubblicata su [Vercel](https://vercel
    Scegli la regione *Central EU (Frankfurt)* e annota la password del database.
 2. Quando il progetto è pronto apri **SQL Editor → New query**, incolla tutto il contenuto di
    `supabase/migrations/0001_schema_iniziale.sql` e premi **Run**. Deve comparire *Success*.
-   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, `0008_misure_allievi.sql`, `0009_certificati_medici.sql`, `0010_eventi.sql`, `0011_bacheca.sql`, `0012_misure_riservate.sql`, …).
+   Ripeti, in ordine, con ogni altro file della cartella (`0002_valutazioni.sql`, `0003_atleti_vedono_squadra.sql`, `0004_diario_allenamenti.sql`, `0005_kata.sql`, `0006_allievo_plus.sql`, `0007_kata_video.sql`, `0008_misure_allievi.sql`, `0009_certificati_medici.sql`, `0010_eventi.sql`, `0011_bacheca.sql`, `0012_misure_riservate.sql`, `0013_consensi_privacy.sql`, …).
 3. Apri **Project Settings → API** e copia i valori **Project URL** e **anon public key**
    (nei progetti nuovi si chiama *publishable key*): servono al punto 3.
 
@@ -80,6 +80,11 @@ elimina l'utente e genera un nuovo codice invito.
 La pagina `/privacy` (visibile anche senza accesso) è l'informativa dell'app. Prima di usarla:
 1. completa i dati dell'associazione in `src/lib/privacy.ts` (denominazione, sede, contatto, regione dei dati);
 2. falla verificare dal vostro consulente privacy e raccogli i consensi (dei genitori per i minori).
+
+Al primo accesso ogni utente accetta l'informativa (`/privacy/accetta`); chi ha una scheda atleta sceglie
+anche se dare il consenso ai dati sulla salute, e per i minori accetta il genitore indicandone il nome.
+Lo stato di ogni persona è in Impostazioni. Se modifichi il testo dell'informativa, cambia `PRIVACY_VERSIONE`
+in `src/lib/privacy.ts`: a tutti verrà chiesto di accettarla di nuovo.
 
 Misure fisiche, certificato medico e note dell'allenatore sono leggibili solo dallo staff e,
 per misure e certificato, dall'atleta stesso: lo garantiscono i permessi del database.

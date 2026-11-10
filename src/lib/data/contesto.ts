@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Dojo, Ruolo } from "@/lib/domain/tipi";
 import { isStaff, vedeValutazioni } from "@/lib/domain/ruoli";
+import { PRIVACY_VERSIONE } from "@/lib/privacy";
 
 export interface Contesto {
   userId: string;
@@ -17,6 +18,11 @@ export interface Contesto {
   staff: boolean;
   /** Può vedere i voti delle valutazioni (staff e Allievo+). */
   vedeValutazioni: boolean;
+  /**
+   * Accettazione dell'informativa attuale: `null` se non ancora accettata.
+   * Se la tabella dei consensi non esiste ancora (migrazione 0013) vale come accettata, per non bloccare l'app.
+   */
+  privacy: { consensoSalute: boolean; accettatoDa: "interessato" | "genitore"; nomeGenitore: string | null; il: string | null } | null;
   /** Tutti i dojo dell'utente (per un futuro selettore di società). */
   dojos: { dojo: Dojo; ruolo: Ruolo }[];
 }
@@ -49,6 +55,17 @@ export const contesto = cache(async (): Promise<Contesto> => {
   const scelto = (await cookies()).get(COOKIE_DOJO)?.value;
   const attivo = lista.find((m) => m.dojo.id === scelto) ?? lista[0];
 
+  const { data: consenso, error: errConsenso } = await supabase
+    .from("consensi_privacy")
+    .select("consenso_salute, accettato_da, nome_genitore, accettato_il")
+    .eq("user_id", user.id).eq("dojo_id", attivo.dojo.id).eq("versione", PRIVACY_VERSIONE)
+    .maybeSingle();
+  const privacy = errConsenso
+    ? { consensoSalute: true, accettatoDa: "interessato" as const, nomeGenitore: null, il: null }
+    : consenso
+      ? { consensoSalute: consenso.consenso_salute as boolean, accettatoDa: consenso.accettato_da as "interessato" | "genitore", nomeGenitore: consenso.nome_genitore as string | null, il: consenso.accettato_il as string }
+      : null;
+
   return {
     userId: user.id,
     email: user.email,
@@ -58,6 +75,7 @@ export const contesto = cache(async (): Promise<Contesto> => {
     atletaId: attivo.atletaId,
     staff: isStaff(attivo.ruolo),
     vedeValutazioni: vedeValutazioni(attivo.ruolo),
+    privacy,
     dojos: lista.map(({ dojo, ruolo }) => ({ dojo, ruolo })),
   };
 });

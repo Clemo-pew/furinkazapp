@@ -185,6 +185,16 @@ ok((await as("I", `select count(*)::int n from note_atleti`)).rows[0].n === 1, "
 ok((await as("A", `select count(*)::int n from note_atleti`)).rows[0].n === 0, "l'allievo non legge le note, nemmeno le proprie");
 await throws(() => as("A", `insert into note_atleti (atleta_id, dojo_id, note) values ($1,$2,'x')`, [a1, dojo]), "l'allievo non scrive note");
 
+// consensi privacy
+ok((await as("A", `insert into consensi_privacy (dojo_id, versione, letto, consenso_salute, accettato_da, nome_genitore) values ($1,'v1',true,true,'genitore','Maria Ferrara') returning user_id`, [dojo])).rows[0].user_id === U.A, "l'allievo registra il proprio consenso");
+await throws(() => as("A", `insert into consensi_privacy (user_id, dojo_id, versione, letto, accettato_da) values ($1,$2,'v1',true,'interessato')`, [U.I, dojo]), "non si registra il consenso per conto di un altro utente");
+await throws(() => as("I", `insert into consensi_privacy (dojo_id, versione, letto, accettato_da) values ($1,'v1',false,'interessato')`, [dojo]), "la lettura dell'informativa è obbligatoria");
+await throws(() => as("I", `insert into consensi_privacy (dojo_id, versione, letto, accettato_da) values ($1,'v1',true,'genitore')`, [dojo]), "se accetta un genitore serve il suo nome");
+ok((await as("A", `update consensi_privacy set consenso_salute=false where versione='v1' returning user_id`)).rows.length === 1, "l'allievo può revocare il consenso");
+ok((await as("C", `select count(*)::int n from consensi_privacy where user_id=$1`, [U.A])).rows[0].n === 1, "l'amministratore vede i consensi del dojo");
+ok((await as("C", `update consensi_privacy set consenso_salute=true where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "lo staff non può cambiare il consenso di un altro");
+ok((await as("X", `select count(*)::int n from consensi_privacy where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non vede i consensi");
+
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;
 await as("X", `insert into atleti (dojo_id, nome, sesso) values ($1,'Esterno','M')`, [dojo2]);

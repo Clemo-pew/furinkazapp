@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
 import { MENU } from "@/lib/navigazione";
 import { Menu } from "@/components/Menu";
@@ -9,6 +10,8 @@ import { nomeRuolo } from "@/lib/domain/ruoli";
 // Struttura comune a tutte le pagine dopo l'accesso.
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const c = await contesto();
+  // Prima di usare l'app va accettata l'informativa privacy (di nuovo, se è cambiata la versione).
+  if (!c.privacy) redirect("/privacy/accetta");
   // Chi ha una scheda atleta (anche se istruttore) ha la voce "Il mio profilo".
   const voci = [
     { href: "/", etichetta: "Home" },

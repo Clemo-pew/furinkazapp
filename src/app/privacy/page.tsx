@@ -138,7 +138,9 @@ export default async function Privacy() {
           </p>
         </section>
 
-        <p className="hint"><Link href="/">← Torna all&apos;app</Link></p>
+        <p className="hint">
+          <Link href="/privacy/accetta">Le tue scelte sulla privacy</Link> (consenso ai dati sulla salute) · <Link href="/">Torna all&apos;app</Link>
+        </p>
       </article>
     </main>
   );

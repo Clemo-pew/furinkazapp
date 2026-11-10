@@ -8,6 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { dataIt } from "@/lib/domain/date";
 import type { Ruolo } from "@/lib/domain/tipi";
 import { nomeRuolo, RUOLI } from "@/lib/domain/ruoli";
+import { PRIVACY_VERSIONE } from "@/lib/privacy";
 import { FormInvito, FormNomeDojo, PulsanteElimina, SceltaRuolo } from "./Moduli";
 import { eliminaInvito, rimuoviMembro } from "./azioni";
 
@@ -22,7 +23,11 @@ export default async function Impostazioni() {
     supabase.from("membri").select("user_id, ruolo, atleta_id, created_at").eq("dojo_id", c.dojo.id).order("created_at"),
     supabase.from("inviti").select("codice, ruolo, atleta_id, scade_il, usato_il").eq("dojo_id", c.dojo.id).is("usato_da", null).order("created_at", { ascending: false }),
   ]);
-  const { data: profili } = await supabase.from("profili").select("id, nome").in("id", (membri ?? []).map((m) => m.user_id));
+  const [{ data: profili }, { data: consensi }] = await Promise.all([
+    supabase.from("profili").select("id, nome").in("id", (membri ?? []).map((m) => m.user_id)),
+    supabase.from("consensi_privacy").select("user_id, consenso_salute, accettato_da, nome_genitore, accettato_il").eq("dojo_id", c.dojo.id).eq("versione", PRIVACY_VERSIONE),
+  ]);
+  const consensoDi = (id: string) => consensi?.find((x) => x.user_id === id);
   const nomeUtente = (id: string) => profili?.find((p) => p.id === id)?.nome || "Senza nome";
   const nomeAtleta = (id: string | null) => atleti.find((a) => a.id === id)?.nome;
   const collegati = new Set((membri ?? []).map((m) => m.atleta_id).filter(Boolean));
@@ -117,6 +122,7 @@ export default async function Impostazioni() {
             <span className="grow">
               <b>{nomeUtente(m.user_id)}</b>{m.user_id === c.userId && " (tu)"}
               <br /><span className="hint">{nomeRuolo(m.ruolo as Ruolo)}{m.atleta_id && ` · scheda di ${nomeAtleta(m.atleta_id) ?? "atleta"}`}</span>
+              <br /><StatoConsenso consenso={consensoDi(m.user_id)} haScheda={Boolean(m.atleta_id)} />
             </span>
             {admin && m.user_id !== c.userId && (
               <div className="bar">
@@ -128,5 +134,20 @@ export default async function Impostazioni() {
         ))}
       </section>
     </>
+  );
+}
+
+/** Stato dell'accettazione privacy di una persona, per lo staff. */
+function StatoConsenso({ consenso, haScheda }: {
+  consenso: { consenso_salute: boolean; accettato_da: string; nome_genitore: string | null; accettato_il: string } | undefined;
+  haScheda: boolean;
+}) {
+  if (!consenso) return <span className="cert cert-mancante" style={{ marginTop: 4 }}>Informativa non ancora accettata</span>;
+  const data = new Date(consenso.accettato_il).toLocaleDateString("it-IT");
+  return (
+    <span className="hint">
+      Privacy accettata il {data}{consenso.accettato_da === "genitore" && consenso.nome_genitore && ` da ${consenso.nome_genitore} (genitore)`}
+      {haScheda && (consenso.consenso_salute ? " · consenso dati salute: sì" : " · consenso dati salute: no")}
+    </span>
   );
 }
