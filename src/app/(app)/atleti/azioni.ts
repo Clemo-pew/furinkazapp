@@ -16,9 +16,9 @@ export async function salvaAtleta(_: Esito, form: FormData): Promise<Esito> {
     sesso: String(form.get("sesso")) === "F" ? "F" : "M",
     anno_nascita: anno || null,
     cintura: Number(form.get("cintura") ?? 0),
-    note: String(form.get("note") ?? "").trim() || null,
     archiviato: form.get("archiviato") === "on",
   };
+  const note = String(form.get("note") ?? "").trim();
   if (!dati.nome) return { errore: "Il nome è obbligatorio." };
 
   // Certificato medico: tipo e scadenza vanno insieme; entrambi vuoti = nessun certificato.
@@ -33,6 +33,12 @@ export async function salvaAtleta(_: Esito, form: FormData): Promise<Esito> {
     ? await supabase.from("atleti").update(dati).eq("id", id).select("id").single()
     : await supabase.from("atleti").insert({ ...dati, dojo_id: c.dojo.id }).select("id").single();
   if (error) return { errore: error.message };
+
+  // Note dell'allenatore: tabella riservata allo staff (migrazione 0012); se non esiste ancora, campo della scheda.
+  const { error: errNote } = note
+    ? await supabase.from("note_atleti").upsert({ atleta_id: data.id, dojo_id: c.dojo.id, note, updated_at: new Date().toISOString() })
+    : await supabase.from("note_atleti").delete().eq("atleta_id", data.id);
+  if (errNote) await supabase.from("atleti").update({ note: note || null }).eq("id", data.id);
 
   const { error: errCert } = tipo
     ? await supabase.from("certificati_medici").upsert({ atleta_id: data.id, dojo_id: c.dojo.id, tipo, scadenza })

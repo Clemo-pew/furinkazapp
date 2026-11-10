@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Segno } from "@/components/Logo";
 import { Kanji } from "@/components/Kanji";
 import { FormAccesso } from "./FormAccesso";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Accedi" };
 
@@ -18,6 +19,7 @@ export default async function PaginaAccesso({ searchParams }: { searchParams: Pr
         </div>
         {errore && <p className="errore">Il link non è valido o è scaduto. Accedi di nuovo.</p>}
         <FormAccesso />
+        <p className="hint" style={{ textAlign: "center" }}><Link href="/privacy">Informativa sulla privacy</Link></p>
       </div>
     </main>
   );

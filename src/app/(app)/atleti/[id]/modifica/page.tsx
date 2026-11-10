@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { contestoStaff } from "@/lib/data/contesto";
-import { certificatiMedici, leggiAtleta } from "@/lib/data/query";
+import { certificatiMedici, leggiAtleta, noteAtleta } from "@/lib/data/query";
 import { FormAtleta } from "../../FormAtleta";
 
 export const metadata: Metadata = { title: "Modifica atleta" };
@@ -11,6 +11,7 @@ export default async function ModificaAtleta({ params, searchParams }: { params:
   const { id } = await params;
   const [atleta, certificati] = await Promise.all([leggiAtleta(id), certificatiMedici(c.dojo.id, id)]);
   if (!atleta) notFound();
+  atleta.note = await noteAtleta(id, atleta.note);
   const { errore } = await searchParams;
   return (
     <>

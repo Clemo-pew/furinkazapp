@@ -36,7 +36,7 @@ export function FormAtleta({ atleta, certificato }: { atleta?: Atleta; certifica
           <label className="campo">Scade il<input id="cert_scadenza" name="cert_scadenza" type="date" defaultValue={certificato?.scadenza ?? ""} /></label>
           <p className="hint tutta">Lo vedono solo lo staff e l&apos;atleta stesso.</p>
         </fieldset>
-        <label className="campo tutta">Note<textarea id="note" name="note" rows={3} defaultValue={atleta?.note ?? ""} placeholder="Infortuni, obiettivi, categoria di gara…" /></label>
+        <label className="campo tutta">Note (visibili solo allo staff)<textarea id="note" name="note" rows={3} defaultValue={atleta?.note ?? ""} placeholder="Infortuni, obiettivi, categoria di gara…" /></label>
         {atleta && (
           <label className="bar tutta" style={{ fontSize: ".9rem" }}>
             <input id="archiviato" type="checkbox" name="archiviato" defaultChecked={atleta.archiviato} style={{ width: "auto" }} />

@@ -51,7 +51,8 @@ await throws(() => as("X", `select public.accetta_invito($1)`, [codA]), "un codi
 
 // atleta
 ok((await as("A", `select count(*)::int n from atleti`)).rows[0].n === 2, "l'atleta vede tutti gli atleti della squadra");
-ok((await as("A", `select count(*)::int n from misure`)).rows[0].n === 2, "l'atleta vede le misure di tutta la squadra");
+ok((await as("A", `select atleta_id from misure`)).rows.every((r) => r.atleta_id === a1), "l'atleta vede solo le proprie misure");
+ok((await as("A", `select count(*)::int n from misure where atleta_id=$1`, [a2])).rows[0].n === 0, "l'atleta non vede le misure degli altri");
 ok((await as("A", `select count(*)::int n from incontri`)).rows[0].n === 2, "l'atleta vede tutti gli incontri della squadra");
 ok((await as("A", `select count(*)::int n from punti`)).rows[0].n === 2, "l'atleta vede i punti degli incontri");
 ok((await as("A", `update misure set valori='{"peso":1}' where atleta_id=$1 returning id`, [a2])).rows.length === 0, "l'atleta non può modificare le misure degli altri");
@@ -97,7 +98,8 @@ ok((await as("A", `select count(*)::int n from valutazioni`)).rows[0].n === 0, "
 ok((await as("I", `update membri set ruolo='atleta_plus' where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "l'istruttore non può dare Allievo+");
 ok((await as("C", `update membri set ruolo='atleta_plus' where dojo_id=$1 and user_id=$2 returning user_id`, [dojo, U.A])).rows.length === 1, "l'amministratore passa l'allievo ad Allievo+");
 ok((await as("A", `select count(*)::int n from valutazioni`)).rows[0].n === 3, "l'Allievo+ vede le valutazioni di tutta la squadra");
-ok((await as("A", `select count(*)::int n from misure`)).rows[0].n === 3, "l'Allievo+ vede ancora le misure");
+ok((await as("A", `select count(*)::int n from misure where atleta_id=$1`, [a2])).rows[0].n === 0, "anche l'Allievo+ non vede le misure degli altri");
+ok((await as("I", `select count(*)::int n from misure`)).rows[0].n === 3, "l'istruttore vede le misure di tutti");
 await throws(() => as("A", `insert into valutazioni (dojo_id, atleta_id, mese) values ($1,$2,'2026-08-01')`, [dojo, a1]), "l'Allievo+ non può scrivere valutazioni");
 ok((await as("A", `update valutazioni set valori='{"velocita":10}' returning id`)).rows.length === 0, "l'Allievo+ non può cambiare i voti");
 ok((await as("A", `update membri set ruolo='admin' where user_id=$1 returning user_id`, [U.A])).rows.length === 0, "l'Allievo+ non può promuoversi");
@@ -176,6 +178,12 @@ ok((await as("A", `update comunicazioni set in_evidenza=false returning id`)).ro
 ok((await as("A", `delete from comunicazioni returning id`)).rows.length === 0, "l'allievo non elimina le comunicazioni");
 await throws(() => as("I", `insert into comunicazioni (dojo_id, titolo) values ($1,'   ')`, [dojo]), "il titolo è obbligatorio");
 ok((await as("X", `select count(*)::int n from comunicazioni where dojo_id=$1`, [dojo])).rows[0].n === 0, "un estraneo non legge la bacheca");
+
+// note dell'allenatore riservate
+ok((await as("C", `insert into note_atleti (atleta_id, dojo_id, note) values ($1,$2,'Distorsione caviglia, a riposo 2 settimane') returning atleta_id`, [a2, dojo])).rows.length === 1, "l'amministratore scrive una nota sull'atleta");
+ok((await as("I", `select count(*)::int n from note_atleti`)).rows[0].n === 1, "l'istruttore legge le note");
+ok((await as("A", `select count(*)::int n from note_atleti`)).rows[0].n === 0, "l'allievo non legge le note, nemmeno le proprie");
+await throws(() => as("A", `insert into note_atleti (atleta_id, dojo_id, note) values ($1,$2,'x')`, [a1, dojo]), "l'allievo non scrive note");
 
 // altra società: i dati restano separati
 const dojo2 = (await as("X", `select public.crea_dojo('Altro Dojo') as id`)).rows[0].id;

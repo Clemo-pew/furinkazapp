@@ -67,6 +67,7 @@ export function MenuMobile({ voci, dojo, ruolo }: Props) {
           ))}
         </nav>
         <form action="/auth/esci" method="post" className="menu-esci">
+          <Link href="/privacy" className="hint" onClick={() => setAperto(false)} style={{ display: "block", marginBottom: 10 }}>Privacy</Link>
           <button className="btn" style={{ width: "100%" }}>Esci</button>
         </form>
       </div>

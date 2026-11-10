@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { contesto } from "@/lib/data/contesto";
-import { elencoAllenamenti, elencoIncontri, kataConosciuti, leggiAtleta, misureDi, valutazioniDi, certificatiMedici } from "@/lib/data/query";
+import { elencoAllenamenti, elencoIncontri, kataConosciuti, leggiAtleta, misureDi, valutazioniDi, certificatiMedici, noteAtleta } from "@/lib/data/query";
 import { Certificato } from "@/components/Certificato";
 import { storicoKata } from "@/lib/domain/kata";
 import { KataAtleta } from "./KataAtleta";
@@ -46,6 +46,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
     vedeCertificato ? certificatiMedici(c.dojo.id, id) : Promise.resolve([]),
   ]);
   if (!atleta || atleta.dojo_id !== c.dojo.id) notFound();
+  const note = c.staff ? await noteAtleta(id, atleta.note) : null;
   const pres = presenzeAtleta(id, allenamenti, oggi());
   const storiciKata = Object.fromEntries(kata.map((k) => [k.kata, storicoKata(valutazioni, k.kata)]));
   const { ultima: valUltima, precedente: valPrecedente } = ultimeDue(valutazioni);
@@ -75,7 +76,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
         </div>
         {c.staff && <Link className="btn small" href={`/atleti/${id}/modifica`}>Modifica dati</Link>}
       </div>
-      {atleta.note && c.staff && <p className="hint">{atleta.note}</p>}
+      {note && <p className="hint" style={{ whiteSpace: "pre-wrap" }}>{note}</p>}
 
       {accesso && <AccessoAtleta atletaId={id} stato={accesso} nomeUtenteProposto={proponiNomeUtente(atleta.nome)} />}
 
@@ -155,6 +156,8 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
 
       <KataAtleta atletaId={id} conosciuti={kata} storici={storiciKata} staff={c.staff} mostraVoti={c.vedeValutazioni} />
 
+      {/* misure: dati riservati, solo staff e l'atleta stesso */}
+      {vedeCertificato && (
       <section className="card">
         <div className="testata">
           <h3>Fisico{ultima && ` · ultima rilevazione ${etichettaMese(ultima.mese)}`}</h3>
@@ -208,6 +211,7 @@ export default async function SchedaAtleta({ params }: { params: Promise<{ id: s
           </>
         )}
       </section>
+      )}
 
       {!k.incontri ? (
         <section className="card">

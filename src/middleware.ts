@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_KEY, SUPABASE_URL, supabaseConfigurato } from "@/lib/supabase/config";
 
 // Pagine raggiungibili senza aver fatto l'accesso.
-const PUBBLICHE = ["/accedi", "/auth", "/configurazione"];
+const PUBBLICHE = ["/accedi", "/auth", "/configurazione", "/privacy"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

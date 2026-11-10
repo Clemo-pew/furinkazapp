@@ -176,3 +176,14 @@ export async function leggiComunicazione(id: string): Promise<(Comunicazione & {
   const { data } = await supabase.from("comunicazioni").select(`dojo_id, ${CAMPI_COMUNICAZIONE}`).eq("id", id).maybeSingle();
   return (data as (Comunicazione & { dojo_id: string }) | null) ?? null;
 }
+
+/**
+ * Note dell'allenatore su un atleta (solo staff). Dalla migrazione 0012 stanno in note_atleti;
+ * prima di eseguirla si usa ancora il vecchio campo atleti.note (`riserva`).
+ */
+export async function noteAtleta(atletaId: string, riserva: string | null): Promise<string | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("note_atleti").select("note").eq("atleta_id", atletaId).maybeSingle();
+  if (error) return riserva;
+  return (data?.note as string | undefined) ?? riserva;
+}

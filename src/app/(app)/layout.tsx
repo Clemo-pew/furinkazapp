@@ -32,6 +32,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         </div>
       </header>
       <main className="wrap stack">{children}</main>
+      <footer className="wrap piede"><Link href="/privacy">Privacy</Link><span>FurinkazApp</span></footer>
     </>
   );
 }

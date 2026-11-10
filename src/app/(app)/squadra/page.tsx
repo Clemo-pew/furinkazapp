@@ -78,7 +78,7 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
             <table>
               <thead>
                 <tr>
-                  <th>Atleta</th>{c.vedeValutazioni && <th className="r">Valutazione</th>}<th className="r">Peso</th><th className="r">Ultima misura</th>
+                  <th>Atleta</th>{c.vedeValutazioni && <th className="r">Valutazione</th>}{c.staff && <><th className="r">Peso</th><th className="r">Ultima misura</th></>}
                   <th className="r">V-P-S</th><th className="r">Punti fatti / subiti</th><th>Subisce di più</th>
                 </tr>
               </thead>
@@ -105,13 +105,13 @@ export default async function Squadra({ searchParams }: { searchParams: Promise<
                           <div className={mediaVal > mediaPrec ? "migliora" : "peggiora"}>{mediaVal > mediaPrec ? "+" : ""}{fmt(mediaVal - mediaPrec)}</div>
                         )}
                       </td>}
-                      <td className="r num">
+                      {c.staff && <><td className="r num">
                         {peso.valore != null ? `${fmt(peso.valore)} kg` : "—"}
                         {peso.delta != null && peso.delta !== 0 && (
                           <div className={peso.delta > 0 ? "up" : "down"}>{peso.delta > 0 ? "+" : ""}{fmt(peso.delta)}</div>
                         )}
                       </td>
-                      <td className="r num">{ultima ? etichettaMese(ultima.mese) : "—"}</td>
+                      <td className="r num">{ultima ? etichettaMese(ultima.mese) : "—"}</td></>}
                       <td className="r num">{k.incontri ? `${k.vinti}-${k.pari}-${k.persi}` : "—"}</td>
                       <td className="r num">{k.incontri ? `${fmt(k.puntiFatti / k.incontri)} / ${fmt(k.puntiSubiti / k.incontri)}` : "—"}</td>
                       <td>{debolezza ? <span className="weak">{debolezza}</span> : <span className="hint">Pochi dati</span>}</td>
