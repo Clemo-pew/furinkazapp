@@ -3,7 +3,7 @@
 // Il testo dell'informativa è in src/app/privacy/page.tsx: fallo verificare dal vostro consulente privacy.
 export const TITOLARE = {
   /** Denominazione completa, es. "ASD Karate Club Palermo". Se vuoto si usa il nome della società nell'app. */
-  denominazione: "",
+  denominazione: "ASD Polisportiva Levante",
   /** Sede legale, es. "Via Roma 1, 90100 Palermo". */
   sede: "",
   /** Recapito per le richieste privacy (email o telefono della segreteria). */
