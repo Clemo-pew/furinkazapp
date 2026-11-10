@@ -68,7 +68,9 @@ export function SchedaValutazione({ atleta, mese, valori, note, precedenti, puoE
         <div className="bar">
           {m != null && <span className="chip">Media <span className="num">{String(m).replace(".", ",")}</span></span>}
           {mk != null && <span className="chip">Kata <span className="num">{String(mk).replace(".", ",")}</span></span>}
-          {(stato?.ok || (valori && !stato)) && <span className="ok">Salvato</span>}
+          {(stato?.ok || (valori && !stato)) && (
+            <span className="ok">Salvato{stato?.confermati ? ` · ${stato.confermati} vot${stato.confermati === 1 ? "o confermato" : "i confermati"} dal mese precedente` : ""}</span>
+          )}
         </div>
       </div>
       <div className="griglia" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(118px, 1fr))", gap: 8 }}>

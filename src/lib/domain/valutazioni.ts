@@ -32,3 +32,24 @@ export function ultimeDue(valutazioni: Valutazione[]) {
   const ordinate = [...valutazioni].sort((a, b) => a.mese.localeCompare(b.mese));
   return { ultima: ordinate.at(-1), precedente: ordinate.at(-2) };
 }
+
+/**
+ * Completa i voti lasciati vuoti con l'ultimo voto dato in precedenza per quella voce.
+ * `precedenti`: valutazioni dei mesi prima, in qualsiasi ordine; vince la più recente che ha quella voce.
+ * Restituisce anche quali voci sono state confermate dal passato.
+ */
+export function completaConPrecedenti(
+  inseriti: Record<string, number>,
+  chiavi: readonly string[],
+  precedenti: { mese: string; voti: Record<string, number> | null | undefined }[],
+) {
+  const ordinati = [...precedenti].sort((a, b) => b.mese.localeCompare(a.mese));
+  const risultato = { ...inseriti };
+  const confermati: string[] = [];
+  for (const k of chiavi) {
+    if (risultato[k] != null) continue;
+    const da = ordinati.find((p) => valido(p.voti?.[k]));
+    if (da) { risultato[k] = da.voti![k]; confermati.push(k); }
+  }
+  return { valori: risultato, confermati };
+}

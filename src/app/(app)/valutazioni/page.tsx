@@ -49,7 +49,7 @@ export default async function Valutazioni({ searchParams }: { searchParams: Prom
         <div className="testata">
           <div className="stack-s">
             <h1>Valutazioni · <span style={{ textTransform: "capitalize" }}>{meseEsteso(mese)}</span></h1>
-            <p className="hint">{fatti} di {atleti.length} atleti valutati. Voti da {SCALA.min} a {SCALA.max}, anche mezzi voti. Lascia vuoto ciò che non hai valutato. I kata da votare sono quelli segnati come conosciuti nella scheda dell'atleta.</p>
+            <p className="hint">{fatti} di {atleti.length} atleti valutati. Voti da {SCALA.min} a {SCALA.max}, anche mezzi voti. I campi lasciati vuoti confermano l'ultimo voto dato (quello in grigio). I kata da votare sono quelli segnati come conosciuti nella scheda dell'atleta.</p>
           </div>
           <SceltaMese mese={mese} percorso="/valutazioni" />
         </div>

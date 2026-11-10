@@ -2,11 +2,11 @@
 import { revalidatePath } from "next/cache";
 import { contestoStaff } from "@/lib/data/contesto";
 import { supabaseServer } from "@/lib/supabase/server";
-import { SCALA, VOCI_VALUTAZIONE } from "@/lib/domain/valutazioni";
+import { completaConPrecedenti, SCALA, VOCI_VALUTAZIONE } from "@/lib/domain/valutazioni";
 import { kataValido, nomeKata } from "@/lib/domain/kata";
 import { primoDelMese } from "@/lib/domain/date";
 
-export type Esito = { errore?: string; ok?: boolean } | undefined;
+export type Esito = { errore?: string; ok?: boolean; confermati?: number } | undefined;
 
 export async function salvaValutazione(_: Esito, form: FormData): Promise<Esito> {
   const c = await contestoStaff();
@@ -22,22 +22,38 @@ export async function salvaValutazione(_: Esito, form: FormData): Promise<Esito>
     if (!Number.isFinite(n) || n < SCALA.min || n > SCALA.max) return { errore: `${v.nome}: il voto va da ${SCALA.min} a ${SCALA.max}.` };
     valori[v.chiave] = Math.round(n * 2) / 2; // ammessi i mezzi voti
   }
-  const kata: Record<string, number> = {};
+  let kata: Record<string, number> = {};
+  const kataNelModulo: string[] = [];
   let haCampiKata = false; // l'atleta ha kata conosciuti: i loro voti vanno sempre salvati (anche se svuotati)
   for (const [campo, valore] of form.entries()) {
     if (!campo.startsWith("kata_")) continue;
     haCampiKata = true;
     const k = campo.slice(5);
+    if (kataValido(k)) kataNelModulo.push(k);
     const grezzo = String(valore).replace(",", ".").trim();
     if (!grezzo || !kataValido(k)) continue;
     const n = Number(grezzo);
     if (!Number.isFinite(n) || n < SCALA.min || n > SCALA.max) return { errore: `${nomeKata(k)}: il voto va da ${SCALA.min} a ${SCALA.max}.` };
     kata[k] = Math.round(n * 2) / 2;
   }
-  if (!Object.keys(valori).length && !Object.keys(kata).length) return { errore: "Inserisci almeno un voto." };
   const note = String(form.get("note") ?? "").trim() || null;
-
   const supabase = await supabaseServer();
+
+  // I campi lasciati vuoti confermano l'ultimo voto dato nei mesi precedenti.
+  const { data: storico } = await supabase
+    .from("valutazioni")
+    .select("*")
+    .eq("atleta_id", atleta_id)
+    .lt("mese", primoDelMese(mese));
+  const prec = (storico ?? []) as { mese: string; valori: Record<string, number>; kata?: Record<string, number> }[];
+  const generali = completaConPrecedenti(valori, VOCI_VALUTAZIONE.map((v) => v.chiave), prec.map((p) => ({ mese: p.mese, voti: p.valori })));
+  const deiKata = completaConPrecedenti(kata, kataNelModulo, prec.map((p) => ({ mese: p.mese, voti: p.kata })));
+  Object.assign(valori, generali.valori);
+  kata = deiKata.valori;
+  const confermati = generali.confermati.length + deiKata.confermati.length;
+
+  if (!Object.keys(valori).length && !Object.keys(kata).length) return { errore: "Inserisci almeno un voto." };
+
   const { error } = await supabase
     .from("valutazioni")
     .upsert({ dojo_id: c.dojo.id, atleta_id, mese: primoDelMese(mese), valori, note, ...(haCampiKata ? { kata } : {}) }, { onConflict: "atleta_id,mese" });
@@ -52,7 +68,7 @@ export async function salvaValutazione(_: Esito, form: FormData): Promise<Esito>
   revalidatePath("/valutazioni");
   revalidatePath(`/atleti/${atleta_id}`);
   revalidatePath("/squadra");
-  return { ok: true };
+  return { ok: true, confermati };
 }
 
 /** Elimina una valutazione mensile inserita per errore. Solo amministratore. */
