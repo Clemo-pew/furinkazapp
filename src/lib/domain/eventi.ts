@@ -8,6 +8,8 @@ export const TIPI_EVENTO = [
   { chiave: "esame", nome: "Esame di grado", colore: "var(--gold)" },
   { chiave: "allenamento", nome: "Allenamento speciale", colore: "var(--good)" },
   { chiave: "riunione", nome: "Riunione", colore: "var(--muted)" },
+  { chiave: "pranzo", nome: "Pranzo", colore: "var(--evento-pranzo)" },
+  { chiave: "cena", nome: "Cena", colore: "var(--evento-cena)" },
   { chiave: "altro", nome: "Altro", colore: "var(--brand)" },
 ] as const;
 

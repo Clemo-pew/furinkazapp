@@ -6,6 +6,7 @@
   --brand: #5c0a0c; --on-brand: #ffffff; --gold: #9e7413;
   --aka: #c8232c; --aka-soft: #fbe7e8; --ao: #00557f; --ao-soft: #e1edf3;
   --good: #1e7a4c; --warn: #a86a00; --bad: #c2410c;
+  --evento-pranzo: #0f7a6e; --evento-cena: #6b3fa0; /* stessi nei due temi: testo bianco leggibile */
   --display: "Dela Gothic One", "Arial Black", Impact, sans-serif;
   --body: "Figtree Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
