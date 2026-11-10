@@ -53,7 +53,7 @@ export default async function Privacy() {
           <ul>
             <li><b>Dati anagrafici e sportivi</b>: nome e cognome, sesso, anno di nascita, cintura, eventuali note dell&apos;allenatore.</li>
             <li><b>Misure fisiche</b>: peso, altezza, massa grassa, circonferenze, rilevate mese per mese.</li>
-            <li><b>Certificato medico</b>: solo il tipo (agonistico o non agonistico) e la data di scadenza. Non conserviamo il certificato né diagnosi.</li>
+            <li><b>Scadenza del certificato medico</b>: solo il tipo (agonistico o non agonistico) e la data di scadenza, usati come promemoria per il rinnovo. Il certificato non viene caricato né conservato nell'app e non vengono registrate diagnosi.</li>
             <li><b>Valutazioni tecniche</b> dell&apos;allenatore, kata conosciuti e relativi voti.</li>
             <li><b>Allenamenti e incontri</b>: presenze, incontri di kumite in allenamento con i punti segnati e subiti.</li>
             <li><b>Dati di accesso</b>: nome utente (o email, se l&apos;hai indicata tu) e password, conservata in forma cifrata.</li>
@@ -69,7 +69,7 @@ export default async function Privacy() {
             I dati non sono usati per pubblicità, non sono venduti e non sono ceduti a terzi.
           </p>
           <p>
-            La base giuridica è il rapporto associativo e sportivo con l&apos;associazione. Per le misure fisiche e il certificato medico,
+            La base giuridica è il rapporto associativo e sportivo con l&apos;associazione. Per le misure fisiche e la scadenza del certificato medico,
             che possono riguardare la salute, il trattamento avviene con il tuo consenso esplicito o, per i minori, con quello di chi esercita la responsabilità genitoriale.
           </p>
         </section>
@@ -84,7 +84,7 @@ export default async function Privacy() {
               <tbody>
                 <tr><td>Nome, cintura, età</td><td>Sì</td><td>Sì</td><td>Sì</td></tr>
                 <tr><td>Misure fisiche</td><td>Sì</td><td>Sì</td><td>No</td></tr>
-                <tr><td>Certificato medico</td><td>Sì</td><td>Sì</td><td>No</td></tr>
+                <tr><td>Scadenza del certificato medico</td><td>Sì</td><td>Sì</td><td>No</td></tr>
                 <tr><td>Valutazioni e voti dei kata</td><td>Sì</td><td>Solo se «Allievo+»</td><td>Solo se «Allievo+»</td></tr>
                 <tr><td>Incontri di kumite, presenze, kata conosciuti</td><td>Sì</td><td>Sì</td><td>Sì</td></tr>
                 <tr><td>Note dell&apos;allenatore</td><td>Sì</td><td>No</td><td>No</td></tr>
